@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/sitemap.xml

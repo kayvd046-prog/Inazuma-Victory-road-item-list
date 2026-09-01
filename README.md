@@ -1,4 +1,4 @@
-# Inazuma Eleven: Victory Road — Shop Index
+# Inazuma Eleven: Victory Road — Item List
 
 **<https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/>**
 
@@ -11,7 +11,7 @@ objects, kits and emblems.
 - Sort by item, category, shop or type.
 - Every filter, search term and sort order lives in the URL, so any view can be bookmarked or
   shared as a link.
-- Add your own items with **+ Add item**; they stay in your browser.
+- Spotted something wrong or missing? **Submit changes** opens a prefilled issue.
 
 Items added to the game after March 2026 are not included.
 
