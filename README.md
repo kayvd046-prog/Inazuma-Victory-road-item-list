@@ -14,6 +14,8 @@ objects, kits and emblems.
   picked, so the strongest items come first.
 - Every filter, search term and sort order lives in the URL, so any view can be bookmarked or
   shared as a link.
+- Every item name is a link to that one item, so you can share a direct link to a single
+  entry instead of the whole list.
 - Spotted something wrong or missing? **Submit changes** opens a prefilled issue.
 
 Alongside the searchable index there is a plain page per shop and per category — Spirit Market,

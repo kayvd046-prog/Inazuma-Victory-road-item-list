@@ -273,6 +273,9 @@
   }
   tbody tr:hover td{background:var(--panel)}
   .name{font-weight:600}
+  a.item{color:inherit;text-decoration:none}
+  a.item:hover{color:var(--bolt);text-decoration:underline}
+  a.item:focus-visible{outline:2px solid var(--bolt);outline-offset:2px;border-radius:2px}
   .play{color:var(--muted);text-decoration:none;font-size:11px;vertical-align:middle;
         border:1px solid var(--line);border-radius:2px;padding:1px 5px;margin-left:6px}
   .play:hover{color:var(--flame);border-color:var(--flame)}
@@ -2486,9 +2489,14 @@ const clip=d=>MOVIE.has(d[1])
     + `>&#9654;</a>`
   : '';
 
+// De naam is een echte link naar deze pagina, gefilterd op dat ene item. Zo kun je
+// hem kopieren en delen; klikken vangen we hieronder op zodat de pagina niet
+// opnieuw laadt.
+const itemHref=name=>`?q=${encodeURIComponent(name)}`;
+
 function rowHTML([d,i],terms){
   return `<tr>
-    <td class="name" data-l="Item">${hi(d[0],terms)}${clip(d)}</td>
+    <td class="name" data-l="Item"><a class="item" rel="nofollow" href="${itemHref(d[0])}">${hi(d[0],terms)}</a>${clip(d)}</td>
     <td data-l="Category"><span class="tag ${CLS[d[1]]||'t-item'}">${esc(d[1])}</span></td>
     <td class="shop" data-l="Shop">${hi(d[2],terms)}</td>
     <td class="cost" data-l="Cost">${hi(costOf(d,i),terms)}</td>
@@ -2525,6 +2533,20 @@ function fillRest(hits,terms){
     fillRest(hits,terms);
   },{timeout:3000});
 }
+
+rows.addEventListener('click',e=>{
+  const a=e.target.closest('a.item');
+  // Ctrl/cmd/shift-klik en middelklik met rust laten: die horen een tab te openen.
+  if(!a||e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0) return;
+  e.preventDefault();
+  // Dezelfde staat als wanneer je de link zelf zou openen: alleen de zoekterm.
+  shopSel.value=''; typeSel.value=''; elemSel.value=''; statSel.value=''; active.clear();
+  chips.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));
+  q.value=new URLSearchParams(a.search).get('q')||'';
+  sortCol=null; sortDir=1; paintSort();
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+});
 
 more.onclick=()=>{ limit+=PAGE; render(false); };
 

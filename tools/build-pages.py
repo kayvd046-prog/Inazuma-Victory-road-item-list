@@ -12,6 +12,7 @@ import json
 import re
 import shutil
 import unicodedata
+from urllib.parse import quote
 from datetime import date
 from pathlib import Path
 
@@ -61,7 +62,6 @@ def clip(name):
     De dataset bevat geen beeld en het spelmateriaal is niet van ons om te
     hosten, dus verwijzen we naar een zoekopdracht in plaats daarvan.
     """
-    from urllib.parse import quote
     # Zelfde codering als encodeURIComponent in index.html.
     q = quote(f"Inazuma Eleven Victory Road {name}", safe="")
     return (f' <a class="play" target="_blank" rel="noopener nofollow"'
@@ -92,7 +92,11 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
     body = []
     for r in rows:
         play = clip(r[0]) if r[1] in MOVIE else ""
-        cells = [f'<td class="name">{e(r[0])}{play}</td>']
+        # Naar het item in de doorzoekbare lijst; nofollow zodat Google niet 1.879
+        # querystring-varianten van dezelfde pagina gaat crawlen.
+        href = f"{SITE}?q={quote(r[0], safe='')}"
+        cells = [f'<td class="name">'
+                 f'<a class="item" rel="nofollow" href="{href}">{e(r[0])}</a>{play}</td>']
         if show_cat:
             cells.append(f"<td>{e(r[1])}</td>")
         if show_shop:
@@ -156,6 +160,8 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
   th{{text-align:left;color:#949CD0;font-size:14px;padding:10px 12px;border-bottom:1px solid #2B3369;white-space:nowrap}}
   td{{padding:10px 12px;border-bottom:1px solid #1B2250;vertical-align:top}}
   .name{{font-weight:600}}
+  a.item{{color:inherit;text-decoration:none}}
+  a.item:hover{{color:#FFD23F;text-decoration:underline}}
   .play{{color:#949CD0;text-decoration:none;font-size:11px;vertical-align:middle;border:1px solid #2B3369;border-radius:2px;padding:1px 5px;margin-left:6px}}
   .play:hover{{color:#FF6B35;border-color:#FF6B35}}
   .cost{{font-size:14px}}

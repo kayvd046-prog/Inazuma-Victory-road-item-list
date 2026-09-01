@@ -47,6 +47,8 @@
   th{text-align:left;color:#949CD0;font-size:14px;padding:10px 12px;border-bottom:1px solid #2B3369;white-space:nowrap}
   td{padding:10px 12px;border-bottom:1px solid #1B2250;vertical-align:top}
   .name{font-weight:600}
+  a.item{color:inherit;text-decoration:none}
+  a.item:hover{color:#FFD23F;text-decoration:underline}
   .play{color:#949CD0;text-decoration:none;font-size:11px;vertical-align:middle;border:1px solid #2B3369;border-radius:2px;padding:1px 5px;margin-left:6px}
   .play:hover{color:#FF6B35;border-color:#FF6B35}
   .cost{font-size:14px}
@@ -78,28 +80,28 @@
   <table>
     <thead><tr><th>Item</th><th>Stats</th><th>Type</th><th>Details</th></tr></thead>
     <tbody>
-      <tr><td class="name">Lucky Bracelet</td><td class="stats">Kick +7.0, Control +10.0</td><td>Bracelet</td><td class="note">Shoot AT 17, Focus AT 13.5, Focus DF 0.0</td></tr>
-      <tr><td class="name">Bangle of Fate</td><td class="stats">Kick +9.0, Technique +9.0</td><td>Bracelet</td><td class="note">Shoot AT 9, Focus AT 13.5, Focus DF 9.0</td></tr>
-      <tr><td class="name">Whirlpool Bangle</td><td class="stats">Technique +8.0, Agility +8.0</td><td>Bracelet</td><td class="note">Focus AT 8.0, Focus DF 12.0, KP 32</td></tr>
-      <tr><td class="name">Sanctum Bangle</td><td class="stats">Control +8.0, Technique +9.0</td><td>Bracelet</td><td class="note">Shoot AT 8, Focus AT 17.0, Focus DF 9.0</td></tr>
-      <tr><td class="name">Hero Bangle</td><td class="stats">Kick +11.0, Control +6.0</td><td>Bracelet</td><td class="note">Shoot AT 17, Focus AT 11.5, Focus DF 0.0</td></tr>
-      <tr><td class="name">Gale Bangle</td><td class="stats">Pressure +9.0, Physical +8.0</td><td>Bracelet</td><td class="note">Focus AT 0.0, Focus DF 0.0, Scramble AT 8, Scramble DF 9, Wall DF 17, KP 42</td></tr>
-      <tr><td class="name">Master Gloves</td><td class="stats">Physical +12.0, Agility +14.0</td><td>Bracelet</td><td class="note">Focus AT 0.0, Focus DF 7.0, Scramble AT 12, Wall DF 12, KP 92</td></tr>
-      <tr><td class="name">Neo Sleek Necklace</td><td class="stats">Pressure +8.0, Intelligence +9.0</td><td>Pendant</td><td class="note">Focus AT 0.0, Focus DF 9.0, Scramble AT 9, Scramble DF 17, Wall DF 8, KP 16</td></tr>
-      <tr><td class="name">Peace Necklace</td><td class="stats">Physical +8.0, Agility +9.0</td><td>Pendant</td><td class="note">Focus AT 0.0, Focus DF 4.5, Scramble AT 8, Wall DF 8, KP 60</td></tr>
-      <tr><td class="name">King&#x27;s Mantle</td><td class="stats">Kick +11.0, Control +6.0</td><td>Pendant</td><td class="note">Shoot AT 17, Focus AT 11.5, Focus DF 0.0</td></tr>
-      <tr><td class="name">Necklace of Fate</td><td class="stats">Kick +8.0, Technique +9.0</td><td>Pendant</td><td class="note">Shoot AT 8, Focus AT 13.0, Focus DF 9.0</td></tr>
-      <tr><td class="name">Neo Sports Choker</td><td class="stats">Technique +8.0, Intelligence +9.0</td><td>Pendant</td><td class="note">Focus AT 8.0, Focus DF 17.0, Scramble AT 9, Scramble DF 9</td></tr>
-      <tr><td class="name">Neo Athlete&#x27;s Necklace</td><td class="stats">Kick +7.0, Control +10.0</td><td>Pendant</td><td class="note">Shoot AT 17, Focus AT 13.5, Focus DF 0.0</td></tr>
-      <tr><td class="name">Sun Pendant</td><td class="stats">Kick +15.0, Control +11.0</td><td>Pendant</td><td class="note">Shoot AT 26, Focus AT 18.5, Focus DF 0.0</td></tr>
-      <tr><td class="name">Thundercloud Necklace</td><td class="stats">Control +10.0, Technique +10.0</td><td>Pendant</td><td class="note">Shoot AT 10, Focus AT 20.0, Focus DF 10.0</td></tr>
-      <tr><td class="name">Seagull Charm</td><td class="stats">Technique +8.0, Intelligence +9.0</td><td>Misc</td><td class="note">Focus AT 8.0, Focus DF 17.0, Scramble AT 9, Scramble DF 9</td></tr>
-      <tr><td class="name">Neo Sleek Glasses</td><td class="stats">Physical +8.0, Intelligence +9.0</td><td>Misc</td><td class="note">Focus AT 0.0, Focus DF 9.0, Scramble AT 17, Scramble DF 9, Wall DF 8, KP 24</td></tr>
-      <tr><td class="name">Shroud of Darkness</td><td class="stats">Kick +7.0, Control +10.0</td><td>Misc</td><td class="note">Shoot AT 17, Focus AT 13.5, Focus DF 0.0</td></tr>
-      <tr><td class="name">Noodle Shop Hood</td><td class="stats">Kick +11.0, Control +6.0</td><td>Misc</td><td class="note">Shoot AT 17, Focus AT 11.5, Focus DF 0.0</td></tr>
-      <tr><td class="name">Lightning Charm</td><td class="stats">Pressure +8.0, Agility +9.0</td><td>Misc</td><td class="note">Focus AT 0.0, Focus DF 4.5, Scramble DF 8, Wall DF 8, KP 52</td></tr>
-      <tr><td class="name">Starlit Ring</td><td class="stats">Physical +12.0, Agility +14.0</td><td>Misc</td><td class="note">Focus AT 0.0, Focus DF 7.0, Scramble AT 12, Wall DF 12, KP 92</td></tr>
-      <tr><td class="name">Sun Ring</td><td class="stats">Kick +13.0, Control +11.0</td><td>Misc</td><td class="note">Shoot AT 24, Focus AT 17.5, Focus DF 0.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Lucky%20Bracelet">Lucky Bracelet</a></td><td class="stats">Kick +7.0, Control +10.0</td><td>Bracelet</td><td class="note">Shoot AT 17, Focus AT 13.5, Focus DF 0.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Bangle%20of%20Fate">Bangle of Fate</a></td><td class="stats">Kick +9.0, Technique +9.0</td><td>Bracelet</td><td class="note">Shoot AT 9, Focus AT 13.5, Focus DF 9.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Whirlpool%20Bangle">Whirlpool Bangle</a></td><td class="stats">Technique +8.0, Agility +8.0</td><td>Bracelet</td><td class="note">Focus AT 8.0, Focus DF 12.0, KP 32</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Sanctum%20Bangle">Sanctum Bangle</a></td><td class="stats">Control +8.0, Technique +9.0</td><td>Bracelet</td><td class="note">Shoot AT 8, Focus AT 17.0, Focus DF 9.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Hero%20Bangle">Hero Bangle</a></td><td class="stats">Kick +11.0, Control +6.0</td><td>Bracelet</td><td class="note">Shoot AT 17, Focus AT 11.5, Focus DF 0.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Gale%20Bangle">Gale Bangle</a></td><td class="stats">Pressure +9.0, Physical +8.0</td><td>Bracelet</td><td class="note">Focus AT 0.0, Focus DF 0.0, Scramble AT 8, Scramble DF 9, Wall DF 17, KP 42</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Master%20Gloves">Master Gloves</a></td><td class="stats">Physical +12.0, Agility +14.0</td><td>Bracelet</td><td class="note">Focus AT 0.0, Focus DF 7.0, Scramble AT 12, Wall DF 12, KP 92</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Neo%20Sleek%20Necklace">Neo Sleek Necklace</a></td><td class="stats">Pressure +8.0, Intelligence +9.0</td><td>Pendant</td><td class="note">Focus AT 0.0, Focus DF 9.0, Scramble AT 9, Scramble DF 17, Wall DF 8, KP 16</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Peace%20Necklace">Peace Necklace</a></td><td class="stats">Physical +8.0, Agility +9.0</td><td>Pendant</td><td class="note">Focus AT 0.0, Focus DF 4.5, Scramble AT 8, Wall DF 8, KP 60</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=King%27s%20Mantle">King&#x27;s Mantle</a></td><td class="stats">Kick +11.0, Control +6.0</td><td>Pendant</td><td class="note">Shoot AT 17, Focus AT 11.5, Focus DF 0.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Necklace%20of%20Fate">Necklace of Fate</a></td><td class="stats">Kick +8.0, Technique +9.0</td><td>Pendant</td><td class="note">Shoot AT 8, Focus AT 13.0, Focus DF 9.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Neo%20Sports%20Choker">Neo Sports Choker</a></td><td class="stats">Technique +8.0, Intelligence +9.0</td><td>Pendant</td><td class="note">Focus AT 8.0, Focus DF 17.0, Scramble AT 9, Scramble DF 9</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Neo%20Athlete%27s%20Necklace">Neo Athlete&#x27;s Necklace</a></td><td class="stats">Kick +7.0, Control +10.0</td><td>Pendant</td><td class="note">Shoot AT 17, Focus AT 13.5, Focus DF 0.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Sun%20Pendant">Sun Pendant</a></td><td class="stats">Kick +15.0, Control +11.0</td><td>Pendant</td><td class="note">Shoot AT 26, Focus AT 18.5, Focus DF 0.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Thundercloud%20Necklace">Thundercloud Necklace</a></td><td class="stats">Control +10.0, Technique +10.0</td><td>Pendant</td><td class="note">Shoot AT 10, Focus AT 20.0, Focus DF 10.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Seagull%20Charm">Seagull Charm</a></td><td class="stats">Technique +8.0, Intelligence +9.0</td><td>Misc</td><td class="note">Focus AT 8.0, Focus DF 17.0, Scramble AT 9, Scramble DF 9</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Neo%20Sleek%20Glasses">Neo Sleek Glasses</a></td><td class="stats">Physical +8.0, Intelligence +9.0</td><td>Misc</td><td class="note">Focus AT 0.0, Focus DF 9.0, Scramble AT 17, Scramble DF 9, Wall DF 8, KP 24</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Shroud%20of%20Darkness">Shroud of Darkness</a></td><td class="stats">Kick +7.0, Control +10.0</td><td>Misc</td><td class="note">Shoot AT 17, Focus AT 13.5, Focus DF 0.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Noodle%20Shop%20Hood">Noodle Shop Hood</a></td><td class="stats">Kick +11.0, Control +6.0</td><td>Misc</td><td class="note">Shoot AT 17, Focus AT 11.5, Focus DF 0.0</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Lightning%20Charm">Lightning Charm</a></td><td class="stats">Pressure +8.0, Agility +9.0</td><td>Misc</td><td class="note">Focus AT 0.0, Focus DF 4.5, Scramble DF 8, Wall DF 8, KP 52</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Starlit%20Ring">Starlit Ring</a></td><td class="stats">Physical +12.0, Agility +14.0</td><td>Misc</td><td class="note">Focus AT 0.0, Focus DF 7.0, Scramble AT 12, Wall DF 12, KP 92</td></tr>
+      <tr><td class="name"><a class="item" rel="nofollow" href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/?q=Sun%20Ring">Sun Ring</a></td><td class="stats">Kick +13.0, Control +11.0</td><td>Misc</td><td class="note">Shoot AT 24, Focus AT 17.5, Focus DF 0.0</td></tr>
     </tbody>
   </table>
 </main>
