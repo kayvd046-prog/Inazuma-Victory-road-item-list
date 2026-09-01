@@ -16,7 +16,23 @@ objects, kits and emblems.
   shared as a link.
 - Spotted something wrong or missing? **Submit changes** opens a prefilled issue.
 
+Alongside the searchable index there is a plain page per shop and per category — Spirit Market,
+Chronicle Department Store, all Keshin, all boots, and so on — linked from the bottom of the main
+page.
+
 Items added to the game after March 2026 are not included.
+
+## Editing the data
+
+`index.html` is the only place the item list lives, in the `DATA` array near the top of its
+script. The per-shop and per-category pages, the sitemap and the browse links are generated from
+it by `tools/build-pages.py`, which a GitHub Action reruns on every push that touches
+`index.html`. So edit `index.html` and nothing else; the rest catches up by itself. To rebuild
+locally:
+
+```bash
+python3 tools/build-pages.py
+```
 
 Data comes from the Inazuma Eleven VR Document v3.06 and community kit, emblem and price
 guides; the sources are credited at the bottom of the site.
