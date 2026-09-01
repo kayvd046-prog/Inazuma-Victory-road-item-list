@@ -294,7 +294,10 @@
   /* Een kolom die in de huidige selectie nergens iets bevat, verdwijnt: uitrusting
      heeft geen prijs in de bronsheet, kits en emblemen hebben geen stats. */
   #grid.hide-cost th:nth-child(4),#grid.hide-cost td:nth-child(4),
-  #grid.hide-stats th:nth-child(5),#grid.hide-stats td:nth-child(5){display:none}
+  #grid.hide-stats th:nth-child(5),#grid.hide-stats td:nth-child(5),
+  #grid.hide-note th:nth-child(7),#grid.hide-note td:nth-child(7){display:none}
+  .s-main{display:block}
+  .s-sub{display:block;color:var(--muted);font-size:13px;margin-top:3px}
   .note{color:var(--muted);font-size:13.5px}
   .shop{font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;font-size:14.5px}
   .tag{
@@ -387,9 +390,9 @@
         <th style="width:9%" class="sortable" data-col="1" aria-sort="none"><button type="button">Category<span class="arrow" aria-hidden="true">▲</span></button></th>
         <th style="width:15%" class="sortable" data-col="2" aria-sort="none"><button type="button">Shop<span class="arrow" aria-hidden="true">▲</span></button></th>
         <th style="width:13%">Cost / source</th>
-        <th style="width:16%" class="sortable" data-col="stat" aria-sort="none"><button type="button">Stats<span class="arrow" aria-hidden="true">▲</span></button></th>
+        <th style="width:22%" class="sortable" data-col="stat" aria-sort="none"><button type="button">Stats<span class="arrow" aria-hidden="true">▲</span></button></th>
         <th style="width:9%" class="sortable" data-col="5" aria-sort="none"><button type="button">Type<span class="arrow" aria-hidden="true">▲</span></button></th>
-        <th style="width:19%">Details</th>
+        <th style="width:13%">Details</th>
       </tr>
     </thead>
     <tbody id="rows"></tbody>
@@ -429,7 +432,7 @@
 
 <footer>
   <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides.</p>
-  <p><b>What is missing.</b> The spreadsheet lists a shop for each item but not its token price, so the Cost / source column is empty for most equipment; where a guide documents a price, or an item is a battle reward, it sits there. The Stats column holds the stats an item gives and the Power, Tension and Duration of a move. Items added after March 2026 are not included.</p>
+  <p><b>What is missing.</b> The spreadsheet lists a shop for each item but not its token price, so the Cost / source column is empty for most equipment; where a guide documents a price, or an item is a battle reward, it sits there. The Stats column holds the stats an item gives &mdash; the two base stats first, then the Focus, Scramble, Wall, Shoot and KP values beneath &mdash; and the Power, Tension and Duration of a move. All of them can be filtered and sorted on. Items added after March 2026 are not included.</p>
 </footer>
 
 <script>
@@ -2328,8 +2331,21 @@ const CLS = {"Special Move":"t-move","Hyper Move":"t-hyper","Tactic":"t-tactic",
 // hoort in de Stats-kolom en is te filteren en te sorteren.
 const EQ_STAT=/^[A-Za-z][A-Za-z ]*\s[+-]\d/;
 const MOVE_STAT=/^\s*(Power|Tension|Duration|CD)\s+([\d.]+)s?\s*$/;
-// Vaste volgorde in het menu: eerst de statsvan uitrusting, dan die van moves.
-const STAT_NAMES=['Kick','Control','Technique','Intelligence','Pressure','Agility','Physical','Power','Tension','Duration','CD'];
+// De Details-kolom van uitrusting is nog een tweede set stats ("Focus AT 42.5,
+// Shoot AT 60, KP 32"). Die horen bij de Stats-kolom en moeten net zo goed te
+// filteren en te sorteren zijn: een spits kijkt naar Shoot AT, een keeper naar KP.
+const SUB_STAT=/^([A-Za-z][A-Za-z ]*?)\s+(-?\d+(?:\.\d+)?)$/;
+// Vier route-unlock items schrijven hun stats andersom en afgekort:
+// "25 Int / 25 Phys / 25 Pressure - only one obtainable".
+const ALT_STAT=/^(-?\d+(?:\.\d+)?)\s+([A-Za-z]+)$/;
+const ALT_NAME={Int:'Intelligence',Phys:'Physical',Tech:'Technique',
+                Kick:'Kick',Control:'Control',Agility:'Agility',Pressure:'Pressure'};
+
+// Vaste volgorde in het menu: de stats van uitrusting, dan die uit Details, dan
+// die van moves.
+const STAT_NAMES=['Kick','Control','Technique','Intelligence','Pressure','Agility','Physical',
+                  'Shoot AT','Focus AT','Focus DF','Scramble AT','Scramble DF','Wall DF','KP',
+                  'Power','Tension','Duration','CD'];
 
 function parseStats(v){
   const out={};
@@ -2350,8 +2366,44 @@ function parseStats(v){
   return {};
 }
 
-const STATS=DATA.map(d=>parseStats(d[3]));
-const hasStats=i=>STATS[i]!==undefined&&Object.keys(STATS[i]).length>0;
+// De Details-kolom, voor zover die uit stats bestaat. Levert null als er ook maar
+// een deel geen stat is, zodat gewone toelichting ongemoeid blijft.
+function parseDetails(v){
+  if(!v) return null;
+  const parts=v.split(',').map(p=>p.trim());
+  const out={};
+  for(const part of parts){
+    const m=part.match(SUB_STAT);
+    if(!m) return null;
+    out[m[1].trim()]=parseFloat(m[2]);
+  }
+  return Object.keys(out).length?out:null;
+}
+
+// De afgekorte vorm; geeft ook terug wat er na de stats nog aan tekst overblijft.
+function parseAlt(v){
+  if(!v) return null;
+  const [head,...rest]=v.split(' \u00b7 ');
+  const out={};
+  for(const part of head.split(' / ')){
+    const m=part.trim().match(ALT_STAT);
+    if(!m||!ALT_NAME[m[2]]) return null;
+    out[ALT_NAME[m[2]]]=parseFloat(m[1]);
+  }
+  return {stats:out, rest:rest.join(' \u00b7 ')};
+}
+
+const STATS=[], SUB=[], NOTE=[];
+DATA.forEach((d,i)=>{
+  const main=parseStats(d[3]);
+  const alt=Object.keys(main).length?null:parseAlt(d[4]);
+  const sub=alt?null:parseDetails(d[4]);
+  STATS[i]=Object.assign({}, main, alt?alt.stats:sub||{});
+  SUB[i]=sub?d[4]:(alt?d[4].split(' \u00b7 ')[0]:'');
+  NOTE[i]=sub?'':(alt?alt.rest:d[4]);
+});
+
+const hasStats=i=>Object.keys(STATS[i]).length>0;
 
 const rows=document.getElementById('rows'), q=document.getElementById('q'),
       shopSel=document.getElementById('shop'), chips=document.getElementById('chips'),
@@ -2465,6 +2517,7 @@ function render(reset){
 
   grid.classList.toggle('hide-cost',  !hits.some(([d,i])=>filled(costOf(d,i))));
   grid.classList.toggle('hide-stats', !hits.some(([d,i])=>filled(statsOf(d,i))));
+  grid.classList.toggle('hide-note',  !hits.some(([d,i])=>filled(noteOf(d,i))));
 
   empty.hidden = hits.length>0;
   count.innerHTML = `<b>${hits.length}</b> of ${DATA.length} items`;
@@ -2474,8 +2527,12 @@ function render(reset){
 }
 
 // Kolom 3 hoort of in Cost / source of in Stats, nooit in allebei.
-const costOf =(d,i)=>hasStats(i)?'':d[3];
-const statsOf=(d,i)=>hasStats(i)?d[3]:'';
+// Kolom 3 is of stats of prijs/bron; de subs komen uit Details erbij.
+const mainOf =(d,i)=>parseStats(d[3])&&Object.keys(parseStats(d[3])).length?d[3]:'';
+const costOf =(d,i)=>mainOf(d,i)?'':d[3];
+const subOf  =(d,i)=>SUB[i];
+const noteOf =(d,i)=>NOTE[i];
+const statsOf=(d,i)=>[mainOf(d,i),subOf(d,i)].filter(Boolean).join(' \u00b7 ');
 const filled=v=>!!v&&v!=='\u2014';
 
 // Van de moves bestaat geen beeld in deze dataset en het spelmateriaal is niet
@@ -2494,15 +2551,23 @@ const clip=d=>MOVIE.has(d[1])
 // opnieuw laadt.
 const itemHref=name=>`?q=${encodeURIComponent(name)}`;
 
+// Primaire stats vooraan, de secundaire eronder in een rustiger grijs, zodat je
+// de twee soorten uit elkaar houdt zonder een achtste kolom.
+function statCell(d,i,terms){
+  const main=mainOf(d,i), sub=subOf(d,i);
+  return (main?`<span class="s-main">${hi(main,terms)}</span>`:'')
+       + (sub?`<span class="s-sub">${hi(sub,terms)}</span>`:'');
+}
+
 function rowHTML([d,i],terms){
   return `<tr>
     <td class="name" data-l="Item"><a class="item" rel="nofollow" href="${itemHref(d[0])}">${hi(d[0],terms)}</a>${clip(d)}</td>
     <td data-l="Category"><span class="tag ${CLS[d[1]]||'t-item'}">${esc(d[1])}</span></td>
     <td class="shop" data-l="Shop">${hi(d[2],terms)}</td>
     <td class="cost" data-l="Cost">${hi(costOf(d,i),terms)}</td>
-    <td class="stats" data-l="Stats">${hi(statsOf(d,i),terms)}</td>
+    <td class="stats" data-l="Stats">${statCell(d,i,terms)}</td>
     <td class="shop" data-l="Type">${d[5]&&d[5]!=='?'?esc(d[5]):''}</td>
-    <td class="note" data-l="Details">${hi(d[4],terms)}</td>
+    <td class="note" data-l="Details">${hi(noteOf(d,i),terms)}</td>
   </tr>`;
 }
 

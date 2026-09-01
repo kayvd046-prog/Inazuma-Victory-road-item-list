@@ -51,6 +51,38 @@ def is_stats(value):
     return False
 
 
+# De Details-kolom van uitrusting is een tweede set stats; zelfde regels als in
+# index.html, zodat de pagina's dezelfde splitsing tonen.
+SUB_STAT = re.compile(r"^([A-Za-z][A-Za-z ]*?)\s+(-?\d+(?:\.\d+)?)$")
+ALT_STAT = re.compile(r"^(-?\d+(?:\.\d+)?)\s+([A-Za-z]+)$")
+ALT_NAMES = {"Int", "Phys", "Tech", "Kick", "Control", "Agility", "Pressure"}
+
+
+def split_details(row):
+    """Geeft (stats-tekst, resterende toelichting) voor de Details-kolom."""
+    v = (row[4] or "").strip()
+    if not v:
+        return "", ""
+    if not is_stats(row[3]):
+        head, _, rest = v.partition(" \u00b7 ")
+        parts = [p.strip() for p in head.split(" / ")]
+        ms = [ALT_STAT.match(p) for p in parts]
+        if all(ms) and all(m.group(2) in ALT_NAMES for m in ms):
+            return head, rest
+    if all(SUB_STAT.match(p.strip()) for p in v.split(",")):
+        return v, ""
+    return "", v
+
+
+def stats_text(row):
+    parts = [row[3] if is_stats(row[3]) else "", split_details(row)[0]]
+    return " \u00b7 ".join(p for p in parts if p)
+
+
+def note_text(row):
+    return split_details(row)[1]
+
+
 # ------------------------------------------------------------------- opmaak
 
 MOVIE = {"Special Move", "Hyper Move"}
@@ -77,9 +109,9 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
     show_cat = varies(1)
     show_shop = varies(2)
     show_cost = any(not is_stats(r[3]) and r[3] and r[3] != "—" for r in rows)
-    show_stats = any(is_stats(r[3]) for r in rows)
+    show_stats = any(stats_text(r) for r in rows)
     show_type = any(r[5] and r[5] != "?" for r in rows)
-    show_note = any(r[4] for r in rows)
+    show_note = any(note_text(r) for r in rows)
 
     head = ["<tr><th>Item</th>"]
     for on, label in ((show_cat, "Category"), (show_shop, "Shop"),
@@ -104,11 +136,15 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
         if show_cost:
             cells.append(f'<td class="cost">{"" if is_stats(r[3]) else e(r[3])}</td>')
         if show_stats:
-            cells.append(f'<td class="stats">{e(r[3]) if is_stats(r[3]) else ""}</td>')
+            main = r[3] if is_stats(r[3]) else ""
+            sub = split_details(r)[0]
+            inner = ((f'<span class="s-main">{e(main)}</span>' if main else "")
+                     + (f'<span class="s-sub">{e(sub)}</span>' if sub else ""))
+            cells.append(f'<td class="stats">{inner}</td>')
         if show_type:
             cells.append(f'<td>{e(r[5]) if r[5] and r[5] != "?" else ""}</td>')
         if show_note:
-            cells.append(f'<td class="note">{e(r[4])}</td>')
+            cells.append(f'<td class="note">{e(note_text(r))}</td>')
         body.append("<tr>" + "".join(cells) + "</tr>")
 
     links = "".join(
@@ -166,6 +202,8 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
   .play:hover{{color:#FF6B35;border-color:#FF6B35}}
   .cost{{font-size:14px}}
   .stats{{color:#FFD23F;font-size:14px}}
+  .s-main{{display:block}}
+  .s-sub{{display:block;color:#949CD0;font-size:13px;margin-top:3px}}
   .note{{color:#949CD0;font-size:13.5px}}
   nav.more{{border-top:1px solid #2B3369;padding:22px 0 8px}}
   nav.more h2{{font-size:15px;color:#949CD0;margin:0 0 10px;font-weight:600}}

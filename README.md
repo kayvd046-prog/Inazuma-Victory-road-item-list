@@ -8,8 +8,9 @@ objects, kits and emblems.
 
 - Search by item name, shop, team or currency — words may be typed in any order.
 - Filter by shop, category, move type (Shoot / Offense / Defense / Keep) and element.
-- Filter by the stat an item gives — Kick, Control, Technique, Intelligence, Pressure, Agility,
-  Physical — or by a move's Power, Tension, Duration or cooldown.
+- Filter by any of the 18 stats an item gives: the base stats (Kick, Control, Technique,
+  Intelligence, Pressure, Agility, Physical), the combat stats (Shoot AT, Focus AT, Focus DF,
+  Scramble AT, Scramble DF, Wall DF, KP), or a move's Power, Tension, Duration or cooldown.
 - Sort by item, category, shop or type, and sort the Stats column by the value of the stat you
   picked, so the strongest items come first.
 - Every filter, search term and sort order lives in the URL, so any view can be bookmarked or
