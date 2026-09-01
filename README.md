@@ -11,8 +11,8 @@ objects, kits and emblems.
 - Filter by any of the 18 stats an item gives: the base stats (Kick, Control, Technique,
   Intelligence, Pressure, Agility, Physical), the combat stats (Shoot AT, Focus AT, Focus DF,
   Scramble AT, Scramble DF, Wall DF, KP), or a move's Power, Tension, Duration or cooldown.
-- Pick several stats at once: only items that give all of them are shown, and sorting the Stats
-  column then ranks by their combined total, so the strongest item for that build comes first.
+- Pick several stats at once: only items that give all of them are shown. Click any of the
+  chips to rank by that one stat, or **Total** to rank by what they add up to.
 - Every filter, search term and sort order lives in the URL, so any view can be bookmarked or
   shared as a link.
 - Every item name is a link to that one item, so you can share a direct link to a single
