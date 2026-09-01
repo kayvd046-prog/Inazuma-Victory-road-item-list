@@ -71,8 +71,10 @@
     padding:14px 24px;
   }
   .controls-inner{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  /* De winkelkeuze groeit anders mee met de langste winkelnaam en duwt de knoppen naar de volgende regel. */
+  .controls-inner select{max-width:240px}
   .search{
-    flex:1 1 280px;
+    flex:1 1 220px;
     display:flex;
     align-items:center;
     gap:10px;
@@ -108,6 +110,7 @@
     font:inherit;padding:10px 14px;border-radius:var(--radius);cursor:pointer;
   }
   .clear:hover{color:var(--text);border-color:var(--bolt)}
+  a.clear{text-decoration:none;display:inline-block;white-space:nowrap}
   .clear:focus-visible,#q:focus-visible{outline:2px solid var(--bolt);outline-offset:2px}
 
   .clear.primary{border-color:var(--bolt);color:var(--bolt)}
@@ -258,6 +261,10 @@
     <select id="elem" aria-label="Filter by element"><option value="">All elements</option></select>
     <button class="clear" id="reset" type="button">Clear</button>
     <button class="clear primary" id="toggleAdd" type="button">+ Add item</button>
+    <a class="clear" id="submit"
+       href="https://github.com/kayvd046-prog/Inazuma-Victory-road-item-list/issues/new?title=Suggested%20change&amp;body=**Item**%0A%0A%0A**What%20should%20change**%0A%0A%0A**Where%20did%20you%20find%20this%3F**%0A%0A"
+       target="_blank" rel="noopener"
+       title="Propose a correction or a missing item on GitHub">Submit changes</a>
   </div>
 </div>
 
