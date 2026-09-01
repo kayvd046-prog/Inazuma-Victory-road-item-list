@@ -2,7 +2,7 @@
 
 **<https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/>**
 
-A searchable index of 1,879 items in *Inazuma Eleven: Victory Road* and where each one comes
+A searchable index of 1,878 items in *Inazuma Eleven: Victory Road* and where each one comes
 from: special moves, hyper moves (Keshin, Totems, Awakenings), tactics, equipment, Bond Town
 objects, kits and emblems.
 
