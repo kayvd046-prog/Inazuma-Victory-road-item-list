@@ -229,6 +229,18 @@
   .chip:hover{color:var(--text)}
   .chip[aria-pressed="true"]{background:var(--bolt);border-color:var(--bolt);color:#12142e;font-weight:600}
 
+  /* Gekozen stats: verschijnen pas zodra je er een kiest, dus in rust blijft de
+     kop net zo licht als voorheen. */
+  .statchips{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .statchips .lbl{font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+                  font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .statchip{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:14px;
+            background:var(--bolt);color:#12142e;border:1px solid var(--bolt);
+            border-radius:100px;padding:4px 6px 4px 12px;cursor:pointer;font-weight:600}
+  .statchip:hover{background:var(--flame);border-color:var(--flame);color:#fff}
+  .statchip .x{font-size:15px;line-height:1;opacity:.75}
+  .statchip:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+
   /* ---------- Teller ---------- */
   .count{
     max-width:1180px;margin:0 auto;padding:16px 24px 0;
@@ -380,6 +392,7 @@
 </div>
 
 <div class="chips" id="chips"></div>
+<div class="statchips" id="statchips" hidden></div>
 <p class="count" id="count"></p>
 
 <main>
@@ -432,7 +445,7 @@
 
 <footer>
   <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides.</p>
-  <p><b>What is missing.</b> The spreadsheet lists a shop for each item but not its token price, so the Cost / source column is empty for most equipment; where a guide documents a price, or an item is a battle reward, it sits there. The Stats column holds the stats an item gives &mdash; the two base stats first, then the Focus, Scramble, Wall, Shoot and KP values beneath &mdash; and the Power, Tension and Duration of a move. All of them can be filtered and sorted on. Items added after March 2026 are not included.</p>
+  <p><b>What is missing.</b> The spreadsheet lists a shop for each item but not its token price, so the Cost / source column is empty for most equipment; where a guide documents a price, or an item is a battle reward, it sits there. The Stats column holds the stats an item gives &mdash; the two base stats first, then the Focus, Scramble, Wall, Shoot and KP values beneath &mdash; and the Power, Tension and Duration of a move. You can filter on several stats at once, and sorting the column then ranks by what they add up to. Items added after March 2026 are not included.</p>
 </footer>
 
 <script>
@@ -2410,7 +2423,14 @@ const rows=document.getElementById('rows'), q=document.getElementById('q'),
       count=document.getElementById('count'), empty=document.getElementById('empty'),
       more=document.getElementById('more'),
       typeSel=document.getElementById('type'), elemSel=document.getElementById('elem'),
-      statSel=document.getElementById('stat'), grid=document.getElementById('grid');
+      statSel=document.getElementById('stat'), grid=document.getElementById('grid'),
+      statChips=document.getElementById('statchips');
+
+// Meer dan een stat tegelijk: een item moet ze allemaal geven. De volgorde waarin
+// je ze aanklikt doet er niet toe; chips en URL volgen altijd STAT_NAMES, zodat
+// dezelfde selectie altijd dezelfde deelbare link oplevert.
+let picked=new Set();
+const pickedList=()=>STAT_NAMES.filter(n=>picked.has(n));
 
 let active=new Set();
 
@@ -2428,15 +2448,35 @@ function fillShops(){
   fillSelect(elemSel,'All elements',6);
   fillStats();
 }
-function fillStats(){
-  const cur=statSel.value;
+function statList(){
   const seen=new Set();
   STATS.forEach(o=>{for(const k in o) seen.add(k)});
-  const list=STAT_NAMES.filter(n=>seen.has(n));
-  statSel.innerHTML='<option value="">All stats</option>';
-  list.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;statSel.append(o)});
-  statSel.value=list.includes(cur)?cur:'';
+  return STAT_NAMES.filter(n=>seen.has(n));
 }
+function fillStats(){
+  // Al gekozen stats staan niet meer in het menu; die zitten in de chips.
+  const rest=statList().filter(n=>!picked.has(n));
+  statSel.innerHTML=`<option value="">${picked.size?'Add a stat…':'All stats'}</option>`;
+  rest.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;statSel.append(o)});
+  statSel.value='';
+  statSel.disabled=rest.length===0;
+}
+// Chips voor wat er gekozen is; klikken haalt die stat er weer af.
+function paintStatChips(){
+  statChips.hidden=picked.size===0;
+  statChips.innerHTML=picked.size
+    ? '<span class="lbl">Stats</span>'+pickedList().map(n=>
+        `<button class="statchip" type="button" data-stat="${esc(n)}"`
+        + ` aria-label="Remove ${esc(n)} filter">${esc(n)}<span class="x" aria-hidden="true">&times;</span></button>`
+      ).join('')
+    : '';
+}
+statChips.addEventListener('click',e=>{
+  const b=e.target.closest('.statchip');
+  if(!b) return;
+  picked.delete(b.dataset.stat);
+  fillStats(); paintStatChips(); render();
+});
 function fillSelect(sel,label,idx){
   const cur=sel.value;
   const list=[...new Set(DATA.map(d=>d[idx]).filter(v=>v&&v!=='?'))].sort((a,b)=>a.localeCompare(b,'en'));
@@ -2483,7 +2523,7 @@ function render(reset){
     if(typeSel.value && d[5]!==typeSel.value) return false;
     if(elemSel.value && d[6]!==elemSel.value) return false;
     if(active.size && !active.has(d[1])) return false;
-    if(statSel.value && !(statSel.value in STATS[i])) return false;
+    for(const st of picked) if(!(st in STATS[i])) return false;
     if(!terms.length) return true;
     const hay=d.join(' ').toLowerCase();
     return terms.every(t=>hay.includes(t));
@@ -2496,8 +2536,14 @@ function render(reset){
     // items bovenaan komen ongeacht welke stat dat is.
     const key = num
       ? ([,i])=>{
-          const o=STATS[i], pick=statSel.value;
-          if(pick) return pick in o ? o[pick] : null;
+          const o=STATS[i];
+          // Meerdere stats gekozen: sorteer op wat ze samen opleveren, zodat het
+          // item dat op alle gekozen punten het sterkst is bovenaan komt.
+          if(picked.size){
+            let sum=0;
+            for(const st of picked){ if(!(st in o)) return null; sum+=o[st]; }
+            return sum;
+          }
           const vals=Object.values(o);
           return vals.length ? Math.max(...vals) : null;
         }
@@ -2605,7 +2651,8 @@ rows.addEventListener('click',e=>{
   if(!a||e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0) return;
   e.preventDefault();
   // Dezelfde staat als wanneer je de link zelf zou openen: alleen de zoekterm.
-  shopSel.value=''; typeSel.value=''; elemSel.value=''; statSel.value=''; active.clear();
+  shopSel.value=''; typeSel.value=''; elemSel.value=''; active.clear();
+  picked.clear(); fillStats(); paintStatChips();
   chips.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));
   q.value=new URLSearchParams(a.search).get('q')||'';
   sortCol=null; sortDir=1; paintSort();
@@ -2645,7 +2692,7 @@ function syncURL(){
   if(shopSel.value) p.set('shop',shopSel.value);
   if(typeSel.value) p.set('type',typeSel.value);
   if(elemSel.value) p.set('elem',elemSel.value);
-  if(statSel.value) p.set('stat',statSel.value);
+  if(picked.size) p.set('stat',pickedList().join(','));
   if(active.size) p.set('cat',[...active].join(','));
   if(sortCol!==null) p.set('sort',(sortDir<0?'-':'')+sortCol);
   const qs=p.toString();
@@ -2659,7 +2706,9 @@ function readURL(){
   shopSel.value=p.get('shop')||'';
   typeSel.value=p.get('type')||'';
   elemSel.value=p.get('elem')||'';
-  statSel.value=p.get('stat')||'';
+  const known=statList();
+  picked=new Set((p.get('stat')||'').split(',').map(x=>x.trim()).filter(x=>known.includes(x)));
+  fillStats(); paintStatChips();
   active=new Set((p.get('cat')||'').split(',').filter(c=>CATS.includes(c)));
   chips.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',active.has(b.textContent)));
   const srt=p.get('sort')||'';
@@ -2676,9 +2725,14 @@ q.addEventListener('input',()=>{clearTimeout(tmr);tmr=setTimeout(render,180)});
 shopSel.addEventListener('change',render);
 typeSel.addEventListener('change',render);
 elemSel.addEventListener('change',render);
-statSel.addEventListener('change',render);
+statSel.addEventListener('change',()=>{
+  if(!statSel.value) return;
+  picked.add(statSel.value);
+  fillStats(); paintStatChips(); render();
+});
 document.getElementById('reset').onclick=()=>{
-  q.value=''; shopSel.value=''; typeSel.value=''; elemSel.value=''; statSel.value=''; active.clear();
+  q.value=''; shopSel.value=''; typeSel.value=''; elemSel.value=''; active.clear();
+  picked.clear(); fillStats(); paintStatChips();
   sortCol=null; sortDir=1; paintSort();
   chips.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));
   render(); q.focus();
