@@ -52,6 +52,23 @@ def is_stats(value):
 
 # ------------------------------------------------------------------- opmaak
 
+MOVIE = {"Special Move", "Hyper Move"}
+
+
+def clip(name):
+    """Zoeklink naar beeldmateriaal van een move.
+
+    De dataset bevat geen beeld en het spelmateriaal is niet van ons om te
+    hosten, dus verwijzen we naar een zoekopdracht in plaats daarvan.
+    """
+    from urllib.parse import quote
+    # Zelfde codering als encodeURIComponent in index.html.
+    q = quote(f"Inazuma Eleven Victory Road {name}", safe="")
+    return (f' <a class="play" target="_blank" rel="noopener nofollow"'
+            f' title="Watch {html.escape(name)} on YouTube"'
+            f' href="https://www.youtube.com/results?search_query={q}">&#9654;</a>')
+
+
 def page(title, description, canonical, heading, intro, rows, siblings, sib_label):
     e = html.escape
     # Een kolom die op deze pagina overal hetzelfde is (de winkel op een
@@ -74,7 +91,8 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
 
     body = []
     for r in rows:
-        cells = [f'<td class="name">{e(r[0])}</td>']
+        play = clip(r[0]) if r[1] in MOVIE else ""
+        cells = [f'<td class="name">{e(r[0])}{play}</td>']
         if show_cat:
             cells.append(f"<td>{e(r[1])}</td>")
         if show_shop:
@@ -138,6 +156,8 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
   th{{text-align:left;color:#949CD0;font-size:14px;padding:10px 12px;border-bottom:1px solid #2B3369;white-space:nowrap}}
   td{{padding:10px 12px;border-bottom:1px solid #1B2250;vertical-align:top}}
   .name{{font-weight:600}}
+  .play{{color:#949CD0;text-decoration:none;font-size:11px;vertical-align:middle;border:1px solid #2B3369;border-radius:2px;padding:1px 5px;margin-left:6px}}
+  .play:hover{{color:#FF6B35;border-color:#FF6B35}}
   .cost{{font-size:14px}}
   .stats{{color:#FFD23F;font-size:14px}}
   .note{{color:#949CD0;font-size:13.5px}}
