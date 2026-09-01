@@ -1,11 +1,14 @@
 # Inazuma Eleven: Victory Road — Shop Index
 
+**<https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/>**
+
 A searchable index of 1,879 items in *Inazuma Eleven: Victory Road* and where each one comes
 from: special moves, hyper moves (Keshin, Totems, Awakenings), tactics, equipment, Bond Town
 objects, kits and emblems.
 
-Filter by shop, category, move type (Shoot / Offense / Defense / Keep) and element. Everything
-runs client-side in a single HTML file — no build step, no dependencies, no tracking.
+Filter by shop, category, move type (Shoot / Offense / Defense / Keep) and element, and sort by
+item, category, shop or type. Everything runs client-side in a single HTML file — no build step,
+no dependencies, no tracking.
 
 ## Data sources
 
@@ -18,7 +21,10 @@ Credit belongs to the people who compiled those sheets. If you maintain one of t
 attribution changed or the data taken down, open an issue.
 
 Items added to the game after March 2026 are not included. Use the **+ Add item** button to add
-them yourself; entries are stored in your browser and can be exported to JSON.
+them yourself; entries are stored in your browser.
+
+Filters, the search term and the sort order live in the URL, so any view you are looking at can
+be bookmarked or shared as a link.
 
 ## Publishing this on GitHub Pages
 

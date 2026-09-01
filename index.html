@@ -162,6 +162,21 @@
     border-bottom:1px solid var(--line);
     white-space:nowrap;
   }
+  thead th.sortable{padding:0}
+  thead th.sortable button{
+    font:inherit;color:inherit;
+    background:none;border:0;
+    width:100%;
+    display:flex;align-items:center;gap:5px;
+    padding:10px 12px;
+    cursor:pointer;
+    text-align:left;
+  }
+  thead th.sortable button:hover{color:var(--text)}
+  thead th.sortable button:focus-visible{outline:2px solid var(--bolt);outline-offset:-2px}
+  thead th.sortable .arrow{opacity:0;font-size:10px;line-height:1}
+  thead th[aria-sort]:not([aria-sort="none"]) button{color:var(--bolt)}
+  thead th[aria-sort]:not([aria-sort="none"]) .arrow{opacity:1}
   tbody td{
     padding:12px;
     border-bottom:1px solid rgba(43,51,105,.5);
@@ -243,8 +258,6 @@
     <select id="elem" aria-label="Filter by element"><option value="">All elements</option></select>
     <button class="clear" id="reset" type="button">Clear</button>
     <button class="clear primary" id="toggleAdd" type="button">+ Add item</button>
-    <button class="clear" id="export" type="button">Export</button>
-    <label class="clear" for="import" style="cursor:pointer">Import<input id="import" type="file" accept=".json" hidden></label>
   </div>
 </div>
 
@@ -258,7 +271,7 @@
     <input id="f-note" placeholder="Details (optional)" autocomplete="off">
     <button class="clear primary" id="f-add" type="button">Add</button>
   </div>
-  <p class="adder-hint">Your own entries stay in this browser and are marked with a dot. Export to JSON to back them up or share them.</p>
+  <p class="adder-hint">Your own entries stay in this browser and are marked with a dot.</p>
 </div>
 
 <div class="chips" id="chips"></div>
@@ -268,11 +281,11 @@
   <table>
     <thead>
       <tr>
-        <th style="width:24%">Item</th>
-        <th style="width:11%">Category</th>
-        <th style="width:20%">Shop</th>
+        <th style="width:24%" class="sortable" data-col="0" aria-sort="none"><button type="button">Item<span class="arrow" aria-hidden="true">▲</span></button></th>
+        <th style="width:11%" class="sortable" data-col="1" aria-sort="none"><button type="button">Category<span class="arrow" aria-hidden="true">▲</span></button></th>
+        <th style="width:20%" class="sortable" data-col="2" aria-sort="none"><button type="button">Shop<span class="arrow" aria-hidden="true">▲</span></button></th>
         <th style="width:21%">Cost / source</th>
-        <th style="width:12%">Type</th>
+        <th style="width:12%" class="sortable" data-col="5" aria-sort="none"><button type="button">Type<span class="arrow" aria-hidden="true">▲</span></button></th>
         <th style="width:12%">Details</th>
       </tr>
     </thead>
@@ -288,7 +301,6 @@
 <footer>
   <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides.</p>
   <p><b>What is missing.</b> The spreadsheet lists a shop for each item but not its token price. Where a guide documents the price it sits in the Cost column; otherwise that column holds the item's stats or effect values. Items added after March 2026 are not included.</p>
-  <p>Entries you add yourself are marked with a dot and stay in this browser. Export to JSON to keep them.</p>
 </footer>
 
 <script>
@@ -2231,19 +2243,23 @@ CATS.forEach(c=>{
 });
 
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function hi(text,term){
+const rx=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function hi(text,terms){
   const t=esc(text);
-  if(!term) return t;
-  return t.replace(new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<mark>$1</mark>');
+  if(!terms.length) return t;
+  return t.replace(new RegExp('('+terms.map(rx).join('|')+')','ig'),'<mark>$1</mark>');
 }
 
 const PAGE=80;
-let limit=PAGE, lastHits=[];
+let limit=PAGE;
+
+// Sorteren: kolomindex in de rij, of null voor de oorspronkelijke volgorde.
+let sortCol=null, sortDir=1;
 
 function render(reset){
   if(reset!==false) limit=PAGE;
-  const term=q.value.trim();
-  const low=term.toLowerCase();
+  // Elke los woord moet ergens in de rij voorkomen, in willekeurige volgorde.
+  const terms=q.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const shop=shopSel.value;
   const all=ALL();
   const hits=all.map((d,i)=>[d,i]).filter(([d])=>{
@@ -2251,21 +2267,32 @@ function render(reset){
     if(typeSel.value && d[5]!==typeSel.value) return false;
     if(elemSel.value && d[6]!==elemSel.value) return false;
     if(active.size && !active.has(d[1])) return false;
-    if(!low) return true;
-    return d.join(' ').toLowerCase().includes(low);
+    if(!terms.length) return true;
+    const hay=d.join(' ').toLowerCase();
+    return terms.every(t=>hay.includes(t));
   });
-  lastHits=hits;
+
+  if(sortCol!==null){
+    // '?' staat in de tabel als een lege cel, dus ook zo sorteren.
+    const key=d=>{const v=d[sortCol];return v&&v!=='?'?v:''};
+    hits.sort((a,b)=>{
+      const x=key(a[0]), y=key(b[0]);
+      // Lege cellen altijd onderaan, ongeacht de richting.
+      if(!x!==!y) return x?-1:1;
+      return x.localeCompare(y,'en',{numeric:true})*sortDir || a[1]-b[1];
+    });
+  }
 
   const page=hits.slice(0,limit);
   rows.innerHTML=page.map(([d,i])=>{
     const own=i>=DATA.length;
     return `<tr class="${own?'own':''}">
-    <td class="name" data-l="Item">${hi(d[0],term)}</td>
+    <td class="name" data-l="Item">${hi(d[0],terms)}</td>
     <td data-l="Category"><span class="tag ${CLS[d[1]]||'t-item'}">${esc(d[1])}</span></td>
-    <td class="shop" data-l="Shop">${hi(d[2],term)}</td>
-    <td class="cost" data-l="Cost">${hi(d[3],term)}</td>
+    <td class="shop" data-l="Shop">${hi(d[2],terms)}</td>
+    <td class="cost" data-l="Cost">${hi(d[3],terms)}</td>
     <td class="shop" data-l="Type">${d[5]&&d[5]!=='?'?esc(d[5]):''}</td>
-    <td class="note" data-l="Details">${hi(d[4],term)}${own?` <button class="del" data-i="${i-DATA.length}" type="button">remove</button>`:''}</td>
+    <td class="note" data-l="Details">${hi(d[4],terms)}${own?` <button class="del" data-i="${i-DATA.length}" type="button">remove</button>`:''}</td>
   </tr>`;}).join('');
 
   const rest=hits.length-page.length;
@@ -2273,6 +2300,7 @@ function render(reset){
   more.textContent = rest>0 ? `Show ${Math.min(PAGE,rest)} more (${rest} left)` : '';
   empty.hidden = hits.length>0;
   count.innerHTML = `<b>${hits.length}</b> of ${all.length} items${OWN.length?` · ${OWN.length} your own`:''}`;
+  syncURL();
 }
 
 // delete buttons via delegation: no listener per row
@@ -2302,32 +2330,58 @@ function addItem(){
 document.getElementById('f-add').onclick=addItem;
 document.getElementById('adder').addEventListener('keydown',e=>{if(e.key==='Enter')addItem()});
 
-// ---------- Import / export ----------
-document.getElementById('export').onclick=()=>{
-  const blob=new Blob([JSON.stringify(ALL(),null,1)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='victory-road-winkels.json';
-  a.click(); URL.revokeObjectURL(a.href);
-};
-document.getElementById('import').onchange=e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      const parsed=JSON.parse(r.result);
-      if(!Array.isArray(parsed)) throw 0;
-      const known=new Set(DATA.map(d=>d.join('|')));
-      OWN=parsed.filter(d=>Array.isArray(d)&&d.length>=4&&!known.has(d.join('|')))
-                .map(d=>[d[0],d[1]||'Item',d[2],d[3]||'—',d[4]||'',d[5]||'',d[6]||'']);
-      save(); fillShops(); render();
-    }catch(err){
-      alert('That file is not a valid export. Expected a JSON array of rows.');
-    }
-    e.target.value='';
+// ---------- Sorteerbare kolomkoppen ----------
+const sortHeads=[...document.querySelectorAll('thead th.sortable')];
+const sortCols=sortHeads.map(th=>+th.dataset.col);
+
+function paintSort(){
+  sortHeads.forEach(th=>{
+    const on = sortCol!==null && +th.dataset.col===sortCol;
+    th.setAttribute('aria-sort', on ? (sortDir===1?'ascending':'descending') : 'none');
+    th.querySelector('.arrow').textContent = on && sortDir===-1 ? '\u25BC' : '\u25B2';
+  });
+}
+sortHeads.forEach(th=>{
+  th.querySelector('button').onclick=()=>{
+    const col=+th.dataset.col;
+    // oplopend -> aflopend -> weer de oorspronkelijke volgorde
+    if(sortCol!==col){ sortCol=col; sortDir=1; }
+    else if(sortDir===1){ sortDir=-1; }
+    else { sortCol=null; sortDir=1; }
+    paintSort(); render();
   };
-  r.readAsText(f);
-};
+});
+
+// ---------- Filters in de URL ----------
+function syncURL(){
+  const p=new URLSearchParams();
+  const term=q.value.trim();
+  if(term) p.set('q',term);
+  if(shopSel.value) p.set('shop',shopSel.value);
+  if(typeSel.value) p.set('type',typeSel.value);
+  if(elemSel.value) p.set('elem',elemSel.value);
+  if(active.size) p.set('cat',[...active].join(','));
+  if(sortCol!==null) p.set('sort',(sortDir<0?'-':'')+sortCol);
+  const qs=p.toString();
+  const next=location.pathname+(qs?'?'+qs:'')+location.hash;
+  if(next!==location.pathname+location.search+location.hash) history.replaceState(null,'',next);
+}
+function readURL(){
+  const p=new URLSearchParams(location.search);
+  q.value=p.get('q')||'';
+  // Een waarde die niet in de lijst staat laat het menu op "alle" staan.
+  shopSel.value=p.get('shop')||'';
+  typeSel.value=p.get('type')||'';
+  elemSel.value=p.get('elem')||'';
+  active=new Set((p.get('cat')||'').split(',').filter(c=>CATS.includes(c)));
+  chips.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed',active.has(b.textContent)));
+  const srt=p.get('sort')||'';
+  const col=Math.abs(+srt);
+  if(/^-?\d+$/.test(srt) && sortCols.includes(col)){ sortCol=col; sortDir=srt[0]==='-'?-1:1; }
+  else { sortCol=null; sortDir=1; }
+  paintSort();
+}
+window.addEventListener('popstate',()=>{ readURL(); render(); });
 
 let tmr;
 q.addEventListener('input',()=>{clearTimeout(tmr);tmr=setTimeout(render,180)});
@@ -2336,9 +2390,12 @@ typeSel.addEventListener('change',render);
 elemSel.addEventListener('change',render);
 document.getElementById('reset').onclick=()=>{
   q.value=''; shopSel.value=''; typeSel.value=''; elemSel.value=''; active.clear();
+  sortCol=null; sortDir=1; paintSort();
   chips.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));
   render(); q.focus();
 };
+
+readURL();
 render();
 </script>
 </body>
