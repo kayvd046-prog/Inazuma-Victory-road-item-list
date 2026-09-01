@@ -214,6 +214,10 @@
   .name{font-weight:600}
   .cost{font-size:14px}
   .stats{color:var(--bolt);font-size:14px}
+  /* Een kolom die in de huidige selectie nergens iets bevat, verdwijnt: uitrusting
+     heeft geen prijs in de bronsheet, kits en emblemen hebben geen stats. */
+  #grid.hide-cost th:nth-child(4),#grid.hide-cost td:nth-child(4),
+  #grid.hide-stats th:nth-child(5),#grid.hide-stats td:nth-child(5){display:none}
   .note{color:var(--muted);font-size:13.5px}
   .shop{font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;font-size:14.5px}
   .tag{
@@ -299,7 +303,7 @@
 <p class="count" id="count"></p>
 
 <main>
-  <table>
+  <table id="grid">
     <thead>
       <tr>
         <th style="width:19%" class="sortable" data-col="0" aria-sort="none"><button type="button">Item<span class="arrow" aria-hidden="true">▲</span></button></th>
@@ -2251,7 +2255,7 @@ const rows=document.getElementById('rows'), q=document.getElementById('q'),
       count=document.getElementById('count'), empty=document.getElementById('empty'),
       more=document.getElementById('more'),
       typeSel=document.getElementById('type'), elemSel=document.getElementById('elem'),
-      statSel=document.getElementById('stat');
+      statSel=document.getElementById('stat'), grid=document.getElementById('grid');
 
 let active=new Set();
 
@@ -2356,6 +2360,9 @@ function render(reset){
 
   rows.innerHTML=hits.slice(0,limit).map(d=>rowHTML(d,terms)).join('');
 
+  grid.classList.toggle('hide-cost',  !hits.some(([d,i])=>filled(costOf(d,i))));
+  grid.classList.toggle('hide-stats', !hits.some(([d,i])=>filled(statsOf(d,i))));
+
   empty.hidden = hits.length>0;
   count.innerHTML = `<b>${hits.length}</b> of ${DATA.length} items`;
   paintMore(hits.length);
@@ -2363,14 +2370,18 @@ function render(reset){
   fillRest(hits,terms);
 }
 
+// Kolom 3 hoort of in Cost / source of in Stats, nooit in allebei.
+const costOf =(d,i)=>hasStats(i)?'':d[3];
+const statsOf=(d,i)=>hasStats(i)?d[3]:'';
+const filled=v=>!!v&&v!=='\u2014';
+
 function rowHTML([d,i],terms){
-  const stats=hasStats(i);
   return `<tr>
     <td class="name" data-l="Item">${hi(d[0],terms)}</td>
     <td data-l="Category"><span class="tag ${CLS[d[1]]||'t-item'}">${esc(d[1])}</span></td>
     <td class="shop" data-l="Shop">${hi(d[2],terms)}</td>
-    <td class="cost" data-l="Cost">${stats?'':hi(d[3],terms)}</td>
-    <td class="stats" data-l="Stats">${stats?hi(d[3],terms):''}</td>
+    <td class="cost" data-l="Cost">${hi(costOf(d,i),terms)}</td>
+    <td class="stats" data-l="Stats">${hi(statsOf(d,i),terms)}</td>
     <td class="shop" data-l="Type">${d[5]&&d[5]!=='?'?esc(d[5]):''}</td>
     <td class="note" data-l="Details">${hi(d[4],terms)}</td>
   </tr>`;
