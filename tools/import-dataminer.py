@@ -126,9 +126,14 @@ def build(dump_path):
         out.append([x["name"], "Equipment", shop_of(x), main or "—",
                     combat_text(st), SLOT.get(x["slot"], "Misc"), ""])
 
+    seen_moves = set()
     for x in dump["hissatsu"]:
         if not x.get("name") or not is_new(x["name"], "Special Move"):
             continue
+        # De dump noemt een paar moves twee keer; die horen er een keer in.
+        if norm(x["name"]) in seen_moves:
+            continue
+        seen_moves.add(norm(x["name"]))
         el = ELEMENT.get(x["element"], "")
         note = ("Long Shoot · " if x.get("is_longshot") else "") + el
         out.append([x["name"], "Special Move", shop_of(x),

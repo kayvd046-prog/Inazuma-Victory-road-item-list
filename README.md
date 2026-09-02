@@ -2,7 +2,7 @@
 
 **<https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/>**
 
-A searchable index of 2,067 items in *Inazuma Eleven: Victory Road* and where each one comes
+A searchable index of 2,060 items in *Inazuma Eleven: Victory Road* and where each one comes
 from: special moves, hyper moves (Keshin, Totems, Awakenings), tactics, equipment, Bond Town
 objects, kits and emblems.
 
@@ -19,12 +19,12 @@ objects, kits and emblems.
   entry instead of the whole list.
 - Every special move and hyper move has a **video** link that looks it up in the official
   Inazuma Eleven Player Codex.
-- **Build a set** puts a character next to their gear: search one of 4,739 characters, pick their
-  rarity (Normal through Hero), fill the boots, pendant, bracelet and misc slots, and see the base
-  stats and the combat stats they end up with — base, what the gear adds, and the total. Each gear
-  slot is a search list that shows the stats of every item, and the menu above it ranks all four
-  lists by any stat you like. The character, the rarity and the set live in the URL, so a build can
-  be shared as a link.
+- **Build a set** puts a character next to their gear: search one of 5,206 characters, switch
+  between their normal, Hero and Fabled version and between level 50 and 99, fill the boots,
+  pendant, bracelet and misc slots, and see the base stats and the combat stats they end up with —
+  base, what the gear adds, and the total. Each gear slot is a search list that shows the stats of
+  every item, and the menu above it ranks all four lists by any stat you like. The character, the
+  version, the level and the set live in the URL, so a build can be shared as a link.
 - Spotted something wrong or missing? **Submit changes** opens a prefilled issue.
 
 Alongside the searchable index there is a plain page per shop and per category — Spirit Market,
@@ -32,10 +32,11 @@ Chronicle Department Store, all Keshin, all boots, and so on — plus eight rank
 `best/`: every piece of equipment ordered by each stat it gives, and the shoot, dribble, block and
 catch moves ordered by power and duration. All of them are linked from the bottom of the main page.
 
-The list started from a community document of March 2026; the 189 moves, equipment and tactics that
+The list started from a community document of March 2026. The 189 moves, equipment and tactics that
 the Ares and Orion routes and the updates after them added were imported from a datamined dump of
-game version 6.00.23.00 (`tools/import-dataminer.py`). Kits and emblems for those routes are not in
-that dump and are still missing.
+game version 6.00.23.00 (`tools/import-dataminer.py`), and `tools/refresh-from-dataminer.py` filled
+in the token prices of 1,248 items and the 74 moves whose power was changed by later patches. Kits
+and emblems for those routes are not in that dump and are still missing.
 
 ## Editing the data
 
@@ -49,13 +50,12 @@ locally:
 python3 tools/build-pages.py
 ```
 
-`characters.json` is the one data file that is not derived from `index.html`: the base stats of
-4,739 characters, taken from the [Inazuma Eleven VR Wiki](https://github.com/lluni/inazuma-eleven-vr-wiki)
-(MIT, player database of 24 December 2025) and used by the set builder. It is fetched only when
-the builder is opened, so it costs nothing on a normal visit. The rarity multipliers come from the
-same project's team builder. A character's combat stats are computed, not stored: `powerOf()` in
-`index.html` holds the formulas, which reproduce the combat stats of all 436 pieces of equipment in
-`DATA` exactly, so they can be trusted for characters too.
+`characters.json` is the one data file that is not derived from `index.html`: 5,206 characters with
+their level 50 and level 99 stats, plus the Hero and Fabled versions where the game has them, read
+out of the datamined dump. It is fetched only when the builder is opened, so it costs nothing on a
+normal visit. A character's combat stats are computed, not stored: `powerOf()` in `index.html` holds
+the formulas, which reproduce the combat stats of all 491 pieces of equipment in `DATA` exactly, so
+they can be trusted for characters too.
 
 Data comes from the Inazuma Eleven VR Document v3.06 and community kit, emblem and price
 guides; the sources are credited at the bottom of the site.

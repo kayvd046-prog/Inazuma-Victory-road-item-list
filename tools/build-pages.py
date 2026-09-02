@@ -78,6 +78,15 @@ def split_details(row):
     return "", v
 
 
+def cost_text(row):
+    """De prijs in tokens als die bekend is, anders de herkomst uit
+    kolom 3 - en niets als daar de stats van het item staan."""
+    price = row[7] if len(row) > 7 else ""
+    if price:
+        return price
+    return "" if is_stats(row[3]) or row[3] == "—" else row[3]
+
+
 def stats_text(row):
     parts = [row[3] if is_stats(row[3]) else "", split_details(row)[0]]
     return " \u00b7 ".join(p for p in parts if p)
@@ -207,7 +216,7 @@ def table_html(rows):
     varies = lambda i: len({r[i] for r in rows}) > 1
     show_cat = varies(1)
     show_shop = varies(2)
-    show_cost = any(not is_stats(r[3]) and r[3] and r[3] != "—" for r in rows)
+    show_cost = any(cost_text(r) for r in rows)
     show_stats = any(stats_text(r) for r in rows)
     show_type = any(r[5] and r[5] != "?" for r in rows)
     show_note = any(note_text(r) for r in rows)
@@ -233,7 +242,7 @@ def table_html(rows):
         if show_shop:
             cells.append(f"<td>{e(r[2])}</td>")
         if show_cost:
-            cells.append(f'<td class="cost">{"" if is_stats(r[3]) else e(r[3])}</td>')
+            cells.append(f'<td class="cost">{e(cost_text(r))}</td>')
         if show_stats:
             main = r[3] if is_stats(r[3]) else ""
             sub = split_details(r)[0]
