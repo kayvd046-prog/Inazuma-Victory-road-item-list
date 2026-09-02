@@ -400,7 +400,11 @@
 
   /* ---------- Tabel ---------- */
   main{max-width:1180px;margin:0 auto;padding:12px 24px 80px}
-  table{width:100%;border-collapse:collapse}
+  /* Vaste kolombreedtes: met auto-layout knijpt de browser de kostenkolom
+     terug ondanks de opgegeven breedte, en breken de tokennamen af. */
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  /* Met vaste kolommen kan een lang woord zonder spatie niet meer uitwijken. */
+  tbody td{overflow-wrap:anywhere}
   thead th{
     position:sticky;top:63px;z-index:10;
     text-align:left;
@@ -450,6 +454,13 @@
          border:1px solid var(--line);border-radius:2px;padding:1px 5px;margin-left:7px}
   .codex:hover{color:var(--flame);border-color:var(--flame)}
   .cost{font-size:14px}
+  /* De tokennamen zijn lang ("Coordinator Silvia's Diary Page"); de smalle
+     letter van de site past er veel meer van op een regel. */
+  .tok{display:block;line-height:1.35;
+       font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+       font-size:13.5px}
+  .tok+.tok{margin-top:3px}
+  .tok b{color:var(--bolt);font-weight:700;font-variant-numeric:tabular-nums}
   .stats{color:var(--bolt);font-size:14px}
   .browse{max-width:1180px;margin:0 auto;padding:26px 24px 4px;border-top:1px solid var(--line)}
   .browse h2{font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;font-size:14px;color:var(--muted);margin:0 0 10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
@@ -602,13 +613,13 @@
   <table id="grid">
     <thead>
       <tr>
-        <th style="width:22%" class="sortable" data-col="0" aria-sort="none"><button type="button">Item<span class="arrow" aria-hidden="true">▲</span></button></th>
-        <th style="width:9%" class="sortable" data-col="1" aria-sort="none"><button type="button">Category<span class="arrow" aria-hidden="true">▲</span></button></th>
-        <th style="width:15%" class="sortable" data-col="2" aria-sort="none"><button type="button">Shop<span class="arrow" aria-hidden="true">▲</span></button></th>
-        <th style="width:13%">Cost / source</th>
-        <th style="width:20%" class="sortable" data-col="stat" aria-sort="none"><button type="button">Stats<span class="arrow" aria-hidden="true">▲</span></button></th>
+        <th style="width:18%" class="sortable" data-col="0" aria-sort="none"><button type="button">Item<span class="arrow" aria-hidden="true">▲</span></button></th>
+        <th style="width:11%" class="sortable" data-col="1" aria-sort="none"><button type="button">Category<span class="arrow" aria-hidden="true">▲</span></button></th>
+        <th style="width:14%" class="sortable" data-col="2" aria-sort="none"><button type="button">Shop<span class="arrow" aria-hidden="true">▲</span></button></th>
+        <th style="width:21%">Cost / source</th>
+        <th style="width:17%" class="sortable" data-col="stat" aria-sort="none"><button type="button">Stats<span class="arrow" aria-hidden="true">▲</span></button></th>
         <th style="width:9%" class="sortable" data-col="5" aria-sort="none"><button type="button">Type<span class="arrow" aria-hidden="true">▲</span></button></th>
-        <th style="width:12%">Details</th>
+        <th style="width:10%">Details</th>
       </tr>
     </thead>
     <tbody id="rows"></tbody>
@@ -3001,6 +3012,23 @@ const noteOf =(d,i)=>NOTE[i];
 const statsOf=(d,i)=>[mainOf(d,i),subOf(d,i)].filter(Boolean).join(' \u00b7 ');
 const filled=v=>!!v&&v!=='\u2014';
 
+// Een prijs is "20x Shadow Plans Page + 12x Coordinator Silvia's Diary Page".
+// Als vrije tekst breekt dat midden in een tokennaam af en wordt de rij tot acht
+// regels hoog; elk token op zijn eigen regel houdt het op twee.
+const TOKEN=/^(\d+)x (.+)$/;
+function costCell(d,i,terms){
+  const v=costOf(d,i);
+  if(!v) return '';
+  const parts=v.split(' + ');
+  if(!parts.every(x=>TOKEN.test(x))) return hi(v,terms);
+  return parts.map(x=>{
+    const m=x.match(TOKEN);
+    return `<span class="tok"><b>${hi(m[1],terms)}&times;</b> ${hi(m[2],terms)}</span>`;
+  // De regelovergang staat er zodat kopieren "20x A" en "12x B" gescheiden houdt;
+  // de spans zijn blokken, dus zichtbaar verandert er niets.
+  }).join('\n');
+}
+
 // Doorverwijzing naar de officiele Player Codex.
 //
 // Die site zet de zoekopdracht versleuteld in de URL: de JSON
@@ -3058,7 +3086,7 @@ function rowHTML([d,i],terms){
     <td class="name" data-l="Item"><a class="item" rel="nofollow" href="${itemHref(d[0])}">${hi(d[0],terms)}</a>${clip(d)}</td>
     <td data-l="Category"><span class="tag ${CLS[d[1]]||'t-item'}">${esc(d[1])}</span></td>
     <td class="shop" data-l="Shop">${hi(d[2],terms)}</td>
-    <td class="cost" data-l="Cost">${hi(costOf(d,i),terms)}</td>
+    <td class="cost" data-l="Cost">${costCell(d,i,terms)}</td>
     <td class="stats" data-l="Stats">${statCell(d,i,terms)}</td>
     <td class="shop" data-l="Type">${d[5]&&d[5]!=='?'?esc(d[5]):''}</td>
     <td class="note" data-l="Details">${elMark(hi(noteOf(d,i),terms),d)}</td>
