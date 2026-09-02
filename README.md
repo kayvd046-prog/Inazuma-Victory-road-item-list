@@ -19,9 +19,12 @@ objects, kits and emblems.
   entry instead of the whole list.
 - Every special move and hyper move has a **video** link that looks it up in the official
   Inazuma Eleven Player Codex.
-- **Build a set** puts a character next to their gear: search one of 4,739 characters, fill the
-  boots, pendant, bracelet and misc slots, and see their base stats, what the equipment adds and
-  what they end up with. The set lives in the URL, so a build can be shared as a link.
+- **Build a set** puts a character next to their gear: search one of 4,739 characters, pick their
+  rarity (Normal through Hero), fill the boots, pendant, bracelet and misc slots, and see the base
+  stats and the combat stats they end up with — base, what the gear adds, and the total. Each gear
+  slot is a search list that shows the stats of every item, and the menu above it ranks all four
+  lists by any stat you like. The character, the rarity and the set live in the URL, so a build can
+  be shared as a link.
 - Spotted something wrong or missing? **Submit changes** opens a prefilled issue.
 
 Alongside the searchable index there is a plain page per shop and per category — Spirit Market,
@@ -46,7 +49,10 @@ python3 tools/build-pages.py
 `characters.json` is the one data file that is not derived from `index.html`: the base stats of
 4,739 characters, taken from the [Inazuma Eleven VR Wiki](https://github.com/lluni/inazuma-eleven-vr-wiki)
 (MIT, player database of 24 December 2025) and used by the set builder. It is fetched only when
-the builder is opened, so it costs nothing on a normal visit.
+the builder is opened, so it costs nothing on a normal visit. The rarity multipliers come from the
+same project's team builder. A character's combat stats are computed, not stored: `powerOf()` in
+`index.html` holds the formulas, which reproduce the combat stats of all 436 pieces of equipment in
+`DATA` exactly, so they can be trusted for characters too.
 
 Data comes from the Inazuma Eleven VR Document v3.06 and community kit, emblem and price
 guides; the sources are credited at the bottom of the site.

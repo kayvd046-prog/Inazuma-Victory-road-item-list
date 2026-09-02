@@ -268,6 +268,29 @@
   .build-inner{border:2px solid var(--line);background:rgba(20,26,62,.66);padding:16px 18px 18px}
   .slots{display:flex;flex-wrap:wrap;gap:14px}
   .slot{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:6px}
+  .gearbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px}
+  .gearbar select{height:38px;background:var(--ink);color:var(--text);border:2px solid var(--line);
+                  border-radius:0;padding:0 10px;max-width:230px;
+                  font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+                  font-size:15px;font-weight:600}
+  .gearbar select:hover{border-color:var(--bolt)}
+  .gearbar #raritylbl{margin-left:14px}
+  .gearq{width:100%;height:42px;background:var(--ink);color:var(--text);border:2px solid var(--line);
+         border-radius:0;padding:0 10px;font:inherit;outline:none}
+  .gearq:focus{border-color:var(--bolt)}
+  .gearq::placeholder{color:var(--muted)}
+  .gearlist{position:absolute;z-index:30;left:0;top:44px;min-width:100%;width:max-content;max-width:min(430px,80vw);
+            max-height:300px;overflow:auto;list-style:none;margin:0;padding:0;
+            background:var(--panel-2);border:2px solid var(--bolt)}
+  .gearlist li{padding:7px 12px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:2px 12px}
+  .gearlist li[aria-selected="true"],.gearlist li:hover{background:var(--bolt);color:#12142e}
+  .gearlist .gs{grid-column:1/-1;font-size:12.5px;color:var(--bolt)}
+  .gearlist li[aria-selected="true"] .gs,.gearlist li:hover .gs{color:#4a3400}
+  .gearlist .pick{font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;font-size:14px;
+                  color:var(--bolt);font-variant-numeric:tabular-nums}
+  .gearlist li[aria-selected="true"] .pick,.gearlist li:hover .pick{color:#12142e}
+  .gearlist .none{color:var(--muted);cursor:default}
+  .t-cols{display:flex;flex-wrap:wrap;gap:14px 46px}
   .slot-name{font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
              font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.11em;color:var(--muted)}
   .slot select{width:100%;height:42px;background:var(--ink);color:var(--text);
@@ -486,17 +509,23 @@
   mark{background:var(--bolt);color:#12142e;border-radius:2px;padding:0 1px}
 
   @media (max-width:720px){
-    thead{display:none}
-    tbody tr{display:block;border-bottom:1px solid var(--line);padding:12px 0}
-    tbody td{display:block;border:0;padding:2px 12px}
-    tbody td:empty{display:none}
-    tbody td[data-l]::before{
+    /* De itemlijst wordt op een telefoon een stapel kaartjes. De stattabellen
+       in de bouwer zijn echte tabellen en moeten dat blijven. */
+    #grid thead{display:none}
+    #grid tbody tr{display:block;border-bottom:1px solid var(--line);padding:12px 0}
+    #grid tbody td{display:block;border:0;padding:2px 12px}
+    #grid tbody td:empty{display:none}
+    #grid tbody td[data-l]::before{
       content:attr(data-l);
       display:block;
       font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
       font-size:12px;color:var(--muted);
     }
-    thead th{top:0}
+    #grid thead th{top:0}
+    /* Twee tabellen naast elkaar past niet; onder elkaar wel. */
+    .t-cols{display:block}
+    .t-table{width:100%}
+    .t-table th,.t-table td{padding-left:8px}
   }
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
@@ -510,7 +539,7 @@
   <div>
   <p class="kicker">Inazuma Eleven &middot; Victory Road</p>
   <h1><span class="l1">Item</span><span class="l2">List</span></h1>
-  <p class="lede">Every one of the 1,878 items in <b>Inazuma Eleven: Victory Road</b> and where it comes from &mdash; special moves, hyper moves, Keshin, Totems, tactics, equipment, kits and emblems. Search by item name, shop, team or currency, and filter by category, type, element or the stat an item gives. Or build a set: pick boots, a pendant, a bracelet and a misc item and see what the four add up to.</p>
+  <p class="lede">Every one of the 1,878 items in <b>Inazuma Eleven: Victory Road</b> and where it comes from &mdash; special moves, hyper moves, Keshin, Totems, tactics, equipment, kits and emblems. Search by item name, shop, team or currency, and filter by category, type, element or the stat an item gives. Or build a set: pick a character and their rarity, fill the boots, pendant, bracelet and misc slots &mdash; ranking the gear by any stat &mdash; and see the base and combat stats they end up with.</p>
   </div>
 </header>
 <div class="slash"></div>
@@ -547,6 +576,12 @@
         <ul class="charlist" id="charlist" role="listbox" hidden></ul>
       </div>
       <p class="chosen" id="chosen" hidden></p>
+    </div>
+    <div class="gearbar">
+      <label class="slot-name" for="gearstat">Rank gear by</label>
+      <select id="gearstat"></select>
+      <label class="slot-name" id="raritylbl" for="rarity" hidden>Rarity</label>
+      <select id="rarity" hidden></select>
     </div>
     <div class="slots" id="slots"></div>
     <div class="totals" id="totals"></div>
@@ -609,7 +644,7 @@
 </section>
 
 <footer>
-  <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides. The base stats of the 4,739 characters in the set builder come from the <a href="https://github.com/lluni/inazuma-eleven-vr-wiki">Inazuma Eleven VR Wiki</a> (MIT, player database of 24 December 2025).</p>
+  <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides. The base stats of the 4,739 characters in the set builder come from the <a href="https://github.com/lluni/inazuma-eleven-vr-wiki">Inazuma Eleven VR Wiki</a> (MIT, player database of 24 December 2025), as do the rarity multipliers its team builder uses (Growing +10%, Advanced +20%, Top +30%, Legendary +40%, Hero +67%). The combat stats of a character are not stored anywhere: they follow from the seven base stats (Shoot AT = Kick + Control, KP = Pressure&times;2 + Physical&times;3 + Agility&times;4, and so on), formulas that hold to the decimal for all 436 pieces of equipment in this list.</p>
   <p><b>What is missing.</b> The spreadsheet lists a shop for each item but not its token price, so the Cost / source column is empty for most equipment; where a guide documents a price, or an item is a battle reward, it sits there. The Stats column holds the stats an item gives &mdash; the two base stats first, then the Focus, Scramble, Wall, Shoot and KP values beneath &mdash; and the Power, Tension and Duration of a move. You can filter on several stats at once and then sort on whichever one you like, or on their total. Items added after March 2026 are not included.</p>
 </footer>
 
@@ -2911,9 +2946,10 @@ sortHeads.forEach(th=>{
 });
 
 // ---------- Uitrusting samenstellen ----------
-// Vier slots, en eronder wat ze samen geven. Kits en emblems staan er bewust
-// niet in: die dragen in deze data geen stats, alleen een voorwaarde om ze vrij
-// te spelen. De optelling gebruikt STATS, dezelfde cijfers als de filters.
+// Vier slots, een character ervoor, en eronder wat ze samen opleveren. Kits en
+// emblems staan er bewust niet in: die dragen in deze data geen stats, alleen
+// een voorwaarde om ze vrij te spelen. De optelling gebruikt STATS, dezelfde
+// cijfers als de filters boven de lijst.
 const SLOTS=['Boots','Pendant','Bracelet','Misc'];
 const EQUIP={};
 SLOTS.forEach(s=>EQUIP[s]=[]);
@@ -2931,26 +2967,11 @@ SLOTS.forEach(s=>{
 const twice=i=>dupCount[DATA[i][5]][DATA[i][0]]>1;
 const buildLabel=i=>twice(i)?DATA[i][0]+' — '+DATA[i][2]:DATA[i][0];
 const buildToken=i=>twice(i)?DATA[i][0]+' @'+DATA[i][2]:DATA[i][0];
+// De stats van een item op een regel, zoals ze in de lijst ook staan.
+const gearLine=i=>[DATA[i][3],SUB[i]].filter(Boolean).join(' · ');
 
 const build={};
 SLOTS.forEach(s=>build[s]=null);
-
-const builder=document.getElementById('builder'),
-      slotBox=document.getElementById('slots'),
-      totalBox=document.getElementById('totals'),
-      buildBtn=document.getElementById('buildbtn'),
-      buildClear=document.getElementById('buildclear');
-
-function fillSlots(){
-  slotBox.innerHTML=SLOTS.map(s=>{
-    const opts=EQUIP[s].slice()
-      .sort((a,b)=>buildLabel(a).localeCompare(buildLabel(b)))
-      .map(i=>`<option value="${esc(buildToken(i))}">${esc(buildLabel(i))}</option>`).join('');
-    return `<label class="slot"><span class="slot-name">${esc(s)}</span>`
-      +`<select data-slot="${esc(s)}"><option value="">Empty</option>${opts}</select>`
-      +`<span class="slot-stats" data-for="${esc(s)}"></span></label>`;
-  }).join('');
-}
 
 // Een oude deellink kan nog de kale naam bevatten; die valt terug op het eerste
 // item met die naam in plaats van op niets.
@@ -2960,18 +2981,52 @@ function findInSlot(s,token){
   return null;
 }
 
+const builder=document.getElementById('builder'),
+      slotBox=document.getElementById('slots'),
+      totalBox=document.getElementById('totals'),
+      buildBtn=document.getElementById('buildbtn'),
+      buildClear=document.getElementById('buildclear'),
+      gearStat=document.getElementById('gearstat');
+
 // ---------- Characters ----------
-// De basisstats van de speler waar de uitrusting bovenop komt. 4.739 characters
-// is te veel om altijd mee te laden, dus het bestand komt pas binnen zodra je de
-// bouwer openklapt. Lukt dat niet, dan blijft de bouwer gewoon werken op de
-// uitrusting alleen.
+// De basisstats waar de uitrusting bovenop komt. 4.739 characters is te veel om
+// altijd mee te laden, dus het bestand komt pas binnen zodra je de bouwer
+// openklapt. Lukt dat niet, dan werkt de bouwer gewoon op de uitrusting alleen.
 const CHAR_ORDER=['Kick','Control','Technique','Intelligence','Pressure','Agility','Physical'];
+// De combatstats zijn geen losse data maar volgen uit de zeven basisstats. Deze
+// formules kloppen op alle 436 uitrustingsstukken in de lijst tot op de komma,
+// dus ze gelden net zo goed voor een character.
+const POWER_ORDER=['Shoot AT','Focus AT','Focus DF','Scramble AT','Scramble DF','Wall DF','KP'];
+function powerOf(s){
+  const g=k=>s[k]||0;
+  return {'Shoot AT':g('Kick')+g('Control'),
+          'Focus AT':g('Technique')+g('Control')+g('Kick')*0.5,
+          'Focus DF':g('Technique')+g('Intelligence')+g('Agility')*0.5,
+          'Scramble AT':g('Intelligence')+g('Physical'),
+          'Scramble DF':g('Intelligence')+g('Pressure'),
+          'Wall DF':g('Pressure')+g('Physical'),
+          'KP':g('Pressure')*2+g('Physical')*3+g('Agility')*4};
+}
+
+// De rarity van een character vermenigvuldigt al zijn basisstats. Percentages
+// uit de team builder van de Inazuma Eleven VR Wiki; ze staan in de knop zelf,
+// zodat je meteen ziet waarmee gerekend wordt.
+const RARITY=[['normal','Normal',1],['growing','Growing',1.1],['advanced','Advanced',1.2],
+              ['top','Top',1.3],['legendary','Legendary',1.4],['hero','Hero',1.67]];
+const rarityOf=k=>RARITY.find(r=>r[0]===k)||RARITY[0];
+let rarity='normal';
+
 let CHARS=null, charState='idle', chosen=null, charHi=-1, matches=[];
 const charq=document.getElementById('charq'), charlist=document.getElementById('charlist'),
-      chosenBox=document.getElementById('chosen');
+      chosenBox=document.getElementById('chosen'), raritySel=document.getElementById('rarity');
 
 const charName=c=>c[10]?c[0]+' @'+c[10]:c[0];
-const charStats=c=>{const o={};CHAR_ORDER.forEach((k,n)=>o[k]=c[3+n]);return o;};
+// De basisstats na de rarity; hele getallen, zoals het spel ze toont.
+function charStats(c){
+  const m=rarityOf(rarity)[2], o={};
+  CHAR_ORDER.forEach((k,n)=>o[k]=Math.round(c[3+n]*m));
+  return o;
+}
 
 function loadChars(){
   if(charState!=='idle') return Promise.resolve();
@@ -3034,18 +3089,155 @@ charlist.addEventListener('mousedown',e=>{
 });
 charq.addEventListener('blur',()=>setTimeout(closeList,120));
 
+raritySel.innerHTML=RARITY.map(([k,label,m])=>
+  `<option value="${k}">${label}${m>1?' +'+Math.round((m-1)*100)+'%':''}</option>`).join('');
+raritySel.addEventListener('change',()=>{ rarity=raritySel.value; paintBuild(); syncURL(); });
+
 const fmtStat=v=>Number.isInteger(v)?String(v):v.toFixed(1);
 const signStat=v=>(v>0?'+':'')+fmtStat(v);
+
+// ---------- De vier uitrustingsslots ----------
+// Elk slot is een zoeklijst in plaats van een keuzemenu, zodat je de stats van
+// elk item meteen ziet. Het menu erboven beperkt alle vier de lijsten tot de
+// items die een bepaalde stat geven en zet ze op hoogte van die stat.
+const GEAR_STATS=CHAR_ORDER.concat(POWER_ORDER);
+let gearOpen=null, gearHi=-1, gearMatches=[];
+
+gearStat.innerHTML='<option value="">Name (A–Z)</option>'
+  +GEAR_STATS.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+
+function slotOptions(slot,term){
+  const st=gearStat.value;
+  const words=term.toLowerCase().split(/\s+/).filter(Boolean);
+  let list=EQUIP[slot].filter(i=>{
+    if(st && !(st in STATS[i])) return false;
+    if(!words.length) return true;
+    const hay=(buildLabel(i)+' '+gearLine(i)).toLowerCase();
+    return words.every(w=>hay.includes(w));
+  });
+  list.sort(st
+    ? (a,b)=>STATS[b][st]-STATS[a][st]||buildLabel(a).localeCompare(buildLabel(b))
+    : (a,b)=>buildLabel(a).localeCompare(buildLabel(b)));
+  return list;
+}
+
+function paintGearList(){
+  const box=gearOpen&&slotBox.querySelector(`.gearlist[data-for="${gearOpen}"]`);
+  slotBox.querySelectorAll('.gearlist').forEach(u=>{ if(u!==box) u.hidden=true; });
+  if(!box) return;
+  const st=gearStat.value;
+  if(!gearMatches.length){
+    box.innerHTML='<li class="none">Nothing matches</li>';
+    box.hidden=false;
+    return;
+  }
+  box.innerHTML=gearMatches.map((i,n)=>{
+    if(i===null) return `<li role="option" data-n="${n}" aria-selected="${n===gearHi}"><span>Empty</span></li>`;
+    return `<li role="option" data-n="${n}" aria-selected="${n===gearHi}">`
+      +`<span>${esc(buildLabel(i))}</span>`
+      +(st?`<b class="pick">${fmtStat(STATS[i][st])}</b>`:'')
+      +`<span class="gs">${esc(gearLine(i))}</span></li>`;
+  }).join('');
+  box.hidden=false;
+}
+
+function openGear(slot,term){
+  gearOpen=slot;
+  gearMatches=[null].concat(slotOptions(slot,term));
+  gearHi=0;
+  paintGearList();
+}
+function closeGear(){
+  gearOpen=null; gearMatches=[]; gearHi=-1;
+  slotBox.querySelectorAll('.gearlist').forEach(u=>u.hidden=true);
+}
+function pickGear(slot,i){
+  build[slot]=i;
+  closeGear();
+  // Het veld houdt de focus, en paintBuild laat een veld met focus met rust
+  // zodat het niet onder je vingers verandert; hier zetten we het dus zelf.
+  const inp=slotBox.querySelector(`.gearq[data-slot="${slot}"]`);
+  if(inp) inp.value=i===null?'':buildLabel(i);
+  paintBuild(); syncURL();
+}
+
+function fillSlots(){
+  slotBox.innerHTML=SLOTS.map(s=>
+    `<div class="slot"><span class="slot-name">${esc(s)}</span>`
+    +`<div class="combo"><input class="gearq" data-slot="${esc(s)}" type="search" role="combobox"`
+    +` aria-expanded="false" aria-autocomplete="list" autocomplete="off" spellcheck="false"`
+    +` aria-label="${esc(s)}" placeholder="Empty">`
+    +`<ul class="gearlist" data-for="${esc(s)}" role="listbox" hidden></ul></div>`
+    +`<span class="slot-stats" data-for="${esc(s)}"></span></div>`).join('');
+}
+
+slotBox.addEventListener('input',e=>{
+  const inp=e.target.closest('.gearq');
+  if(inp) openGear(inp.dataset.slot, inp.value);
+});
+slotBox.addEventListener('focusin',e=>{
+  const inp=e.target.closest('.gearq');
+  if(inp){ inp.select(); openGear(inp.dataset.slot,''); }
+});
+slotBox.addEventListener('focusout',e=>{
+  if(e.target.closest('.gearq')) setTimeout(()=>{ if(!slotBox.contains(document.activeElement)){ closeGear(); paintBuild(); } },140);
+});
+slotBox.addEventListener('keydown',e=>{
+  const inp=e.target.closest('.gearq');
+  if(!inp) return;
+  if(e.key==='Escape'){ closeGear(); paintBuild(); return; }
+  if(!gearMatches.length) return;
+  if(e.key==='ArrowDown'){ e.preventDefault(); gearHi=(gearHi+1)%gearMatches.length; paintGearList(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); gearHi=(gearHi-1+gearMatches.length)%gearMatches.length; paintGearList(); }
+  else if(e.key==='Enter'){ e.preventDefault(); if(gearHi>=0) pickGear(inp.dataset.slot,gearMatches[gearHi]); }
+});
+slotBox.addEventListener('mousedown',e=>{
+  const li=e.target.closest('.gearlist li[data-n]');
+  if(!li) return;
+  e.preventDefault();
+  pickGear(li.closest('.gearlist').dataset.for, gearMatches[+li.dataset.n]);
+});
+gearStat.addEventListener('change',()=>{
+  if(gearOpen){
+    const inp=slotBox.querySelector(`.gearq[data-slot="${gearOpen}"]`);
+    openGear(gearOpen, inp?inp.value:'');
+  }
+});
+
+function statRows(order,base,gear,total){
+  let b=0,g=0;
+  const body=order.map(k=>{
+    const bv=base?base[k]:null, gv=gear[k]||0;
+    if(base) b+=bv;
+    g+=gv;
+    return `<tr><td>${esc(k)}</td>`
+      +(base?`<td>${fmtStat(bv)}</td>`:'')
+      +`<td class="gear">${gv?signStat(gv):'&mdash;'}</td>`
+      +`<td class="sum">${fmtStat((base?bv:0)+gv)}</td></tr>`;
+  }).join('');
+  // Alleen de basisstats hebben een zinnig totaal; Shoot AT en KP bij elkaar
+  // optellen zegt niets, dus die tabel krijgt geen totaalregel.
+  const foot=total
+    ? `<tfoot><tr><td>Total</td>`
+      +(base?`<td>${fmtStat(b)}</td>`:'')
+      +`<td class="gear">${g?signStat(g):'&mdash;'}</td>`
+      +`<td class="sum">${fmtStat(b+g)}</td></tr></tfoot>`
+    : '';
+  return `<table class="t-table"><thead><tr><th>Stat</th>`
+    +(base?'<th>Base</th>':'')
+    +`<th>Gear</th><th>Total</th></tr></thead>`
+    +`<tbody>${body}</tbody>${foot}</table>`;
+}
 
 function paintBuild(){
   let n=0;
   const tot={};
   SLOTS.forEach(s=>{
     const i=build[s];
-    const sel=slotBox.querySelector(`select[data-slot="${s}"]`);
-    if(sel) sel.value=i===null?'':buildToken(i);
+    const inp=slotBox.querySelector(`.gearq[data-slot="${s}"]`);
+    if(inp && document.activeElement!==inp) inp.value=i===null?'':buildLabel(i);
     const cell=slotBox.querySelector(`.slot-stats[data-for="${s}"]`);
-    if(cell) cell.textContent=i===null?'':DATA[i][3];
+    if(cell) cell.textContent=i===null?'':gearLine(i);
     if(i===null) return;
     n++;
     const o=STATS[i];
@@ -3054,7 +3246,10 @@ function paintBuild(){
   buildClear.hidden=n===0&&!chosen;
 
   chosenBox.hidden=!chosen;
+  raritySel.hidden=!chosen;
+  document.getElementById('raritylbl').hidden=!chosen;
   if(chosen){
+    raritySel.value=rarity;
     chosenBox.innerHTML=`<b>${esc(chosen[0])}</b> &middot; ${esc(chosen[1])} &middot; ${esc(chosen[2])}`
       +`${chosen[10]?' &middot; '+esc(chosen[10]):''}`
       +` <button type="button" id="charclear">Remove</button>`;
@@ -3081,29 +3276,20 @@ function paintBuild(){
     return;
   }
 
-  // Met character: de basisstats, wat de uitrusting erbij doet, en het resultaat.
+  // Met character: basisstats na rarity, wat de uitrusting erbij doet, en het
+  // resultaat. De combatstats volgen uit de basisstats plus die van de gear.
   const base=charStats(chosen);
-  let bSum=0, gSum=0;
-  const lines=CHAR_ORDER.map(k=>{
-    const g=tot[k]||0;
-    bSum+=base[k]; gSum+=g;
-    return `<tr><td>${esc(k)}</td><td>${base[k]}</td>`
-      +`<td class="gear">${g?signStat(g):'&mdash;'}</td>`
-      +`<td class="sum">${fmtStat(base[k]+g)}</td></tr>`;
-  }).join('');
-  // De stats die alleen uitrusting geeft (Shoot AT, KP, ...) horen niet in die tabel.
-  const extra=keys.filter(k=>CHAR_ORDER.indexOf(k)<0);
-  totalBox.innerHTML='<p class="t-head">'+esc(chosen[0])+'<span>&middot;</span>'
-      +n+' of 4 slots filled</p>'
-    +'<table class="t-table"><thead><tr><th>Stat</th><th>Base</th><th>Gear</th><th>Total</th></tr></thead>'
-    +'<tbody>'+lines+'</tbody>'
-    +`<tfoot><tr><td>Total</td><td>${bSum}</td>`
-    +`<td class="gear">${gSum?signStat(gSum):'&mdash;'}</td>`
-    +`<td class="sum">${fmtStat(bSum+gSum)}</td></tr></tfoot></table>`
-    +(extra.length
-      ? '<p class="t-sub">From equipment only</p><ul class="t-list">'
-        +extra.map(k=>`<li><span>${esc(k)}</span><b>${signStat(tot[k])}</b></li>`).join('')+'</ul>'
-      : '');
+  const power=powerOf(base);
+  const gearPower={};
+  POWER_ORDER.forEach(k=>{ if(tot[k]) gearPower[k]=tot[k]; });
+  const r=rarityOf(rarity);
+  totalBox.innerHTML='<p class="t-head">'+esc(chosen[0])
+      +(r[2]>1?'<span>&middot;</span>'+esc(r[1]):'')
+      +'<span>&middot;</span>'+n+' of 4 slots filled</p>'
+    +'<div class="t-cols">'
+    +'<div><p class="t-sub">Base stats</p>'+statRows(CHAR_ORDER,base,tot,true)+'</div>'
+    +'<div><p class="t-sub">Combat stats</p>'+statRows(POWER_ORDER,power,gearPower,false)+'</div>'
+    +'</div>';
 }
 
 function showBuilder(on){
@@ -3114,26 +3300,16 @@ function showBuilder(on){
 buildBtn.onclick=()=>{
   const open=builder.hidden;
   showBuilder(open);
-  if(open) loadChars();
-  if(open){
-    const first=slotBox.querySelector('select');
-    if(first) first.focus();
-  }
+  if(open){ loadChars(); charq.focus(); }
 };
-slotBox.addEventListener('change',e=>{
-  const sel=e.target.closest('select[data-slot]');
-  if(!sel) return;
-  build[sel.dataset.slot]=sel.value?findInSlot(sel.dataset.slot,sel.value):null;
-  paintBuild(); syncURL();
-});
 buildClear.onclick=()=>{
   SLOTS.forEach(s=>build[s]=null);
-  chosen=null; charq.value='';
-  paintBuild(); syncURL();
+  chosen=null; charq.value=''; rarity='normal';
+  closeGear(); paintBuild(); syncURL();
 };
 chosenBox.addEventListener('click',e=>{
   if(!e.target.closest('#charclear')) return;
-  chosen=null; paintBuild(); syncURL(); charq.focus();
+  chosen=null; rarity='normal'; paintBuild(); syncURL(); charq.focus();
 });
 
 fillSlots();
@@ -3152,7 +3328,10 @@ function syncURL(){
   // De samengestelde set, op slotvolgorde; lege slots blijven leeg.
   const bset=SLOTS.map(s=>build[s]===null?'':buildToken(build[s]));
   if(bset.some(Boolean)) p.set('b',bset.join('~'));
-  if(chosen) p.set('c',charName(chosen));
+  if(chosen){
+    p.set('c',charName(chosen));
+    if(rarity!=='normal') p.set('r',rarity);
+  }
   const qs=p.toString();
   const next=location.pathname+(qs?'?'+qs:'')+location.hash;
   if(next!==location.pathname+location.search+location.hash) history.replaceState(null,'',next);
@@ -3183,6 +3362,7 @@ function readURL(){
   const bset=(p.get('b')||'').split('~');
   SLOTS.forEach((s,k)=>{ build[s]=bset[k]?findInSlot(s,bset[k]):null; });
   const want=p.get('c')||'';
+  rarity=RARITY.some(r=>r[0]===p.get('r'))?p.get('r'):'normal';
   chosen=want&&CHARS?findChar(want):null;
   paintBuild();
   showBuilder(bset.some(Boolean)||!!want);
