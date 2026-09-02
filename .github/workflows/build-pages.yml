@@ -1,9 +1,9 @@
-# Houdt de winkel- en categoriepagina's gelijk met index.html.
+# Houdt de winkel-, categorie- en ranglijstpagina's gelijk met index.html.
 #
 # index.html is de enige bron van de itemlijst. Wijzig je die, dan draait deze
 # workflow tools/build-pages.py en commit hij de bijgewerkte subpagina's, de
 # sitemap en het linkblok terug. Zo kunnen de twee niet uit elkaar lopen.
-name: Rebuild shop and category pages
+name: Rebuild the generated pages
 
 on:
   push:
@@ -39,10 +39,10 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Alleen de gegenereerde bestanden; nooit de bron zelf.
-          git add shops categories sitemap.xml index.html
+          git add shops categories best sitemap.xml index.html
           if git diff --cached --quiet; then
             echo "Niets veranderd."
             exit 0
           fi
-          git commit -m "Rebuild shop and category pages from index.html"
+          git commit -m "Rebuild the generated pages from index.html"
           git push

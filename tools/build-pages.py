@@ -21,6 +21,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = "https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/"
 GAME = "Inazuma Eleven: Victory Road"
 MIN_ITEMS = 10          # onder deze grens is een eigen pagina te dun om te maken
+TOTAL = 0               # aantal items; wordt in build() gezet
+TOP_EQUIP = 15          # lengte van een ranglijst per stat
+TOP_MOVE = 25
 
 # ---------------------------------------------------------------- data inlezen
 
@@ -84,6 +87,66 @@ def note_text(row):
     return split_details(row)[1]
 
 
+# ------------------------------------------------- stats als getallen
+# Dezelfde volgorde en dezelfde regels als STATS in index.html, zodat een
+# ranglijst dezelfde cijfers gebruikt als de filters op de hoofdpagina.
+PRIMARY = ["Kick", "Control", "Technique", "Intelligence", "Pressure", "Agility", "Physical"]
+SECONDARY = ["Shoot AT", "Focus AT", "Focus DF", "Scramble AT", "Scramble DF", "Wall DF", "KP"]
+MOVE_KEYS = ["Power", "Tension", "Duration", "CD"]
+ALT_FULL = {"Int": "Intelligence", "Phys": "Physical", "Tech": "Technique",
+            "Kick": "Kick", "Control": "Control", "Agility": "Agility", "Pressure": "Pressure"}
+
+
+def _col3_stats(value):
+    v = value or ""
+    if EQ_STAT.match(v):
+        return {m.group(1).strip(): float(m.group(2))
+                for m in re.finditer(r"([A-Za-z][A-Za-z ]*?)\s*([+-]\d+(?:\.\d+)?)", v)}
+    if " / " in v or MOVE_STAT.match(v):
+        out = {}
+        for part in v.split(" / "):
+            m = MOVE_STAT.match(part)
+            if not m:
+                return {}
+            out[m.group(1)] = float(m.group(2))
+        return out
+    return {}
+
+
+def _alt_stats(value):
+    head = (value or "").split(" \u00b7 ")[0]
+    parts = [p.strip() for p in head.split(" / ")]
+    ms = [ALT_STAT.match(p) for p in parts]
+    if not parts or not all(ms) or not all(m.group(2) in ALT_FULL for m in ms):
+        return None
+    return {ALT_FULL[m.group(2)]: float(m.group(1)) for m in ms}
+
+
+def _sub_stats(value):
+    out = {}
+    for part in (value or "").split(","):
+        m = SUB_STAT.match(part.strip())
+        if not m:
+            return None
+        out[m.group(1).strip()] = float(m.group(2))
+    return out or None
+
+
+def stat_map(row):
+    """Alle stats van een rij als getallen: kolom 3 en de Details-kolom samen."""
+    main = _col3_stats(row[3])
+    alt = None if main else _alt_stats(row[4])
+    sub = None if alt else _sub_stats(row[4])
+    merged = dict(main)
+    merged.update(alt or sub or {})
+    return merged
+
+
+def num(v):
+    """Hele getallen zonder .0, zoals de bouwer op de hoofdpagina ze toont."""
+    return str(int(v)) if float(v).is_integer() else f"{v:g}"
+
+
 # ------------------------------------------------------------------- opmaak
 
 MOVIE = {"Special Move", "Hyper Move"}
@@ -132,6 +195,12 @@ def clip(name, category):
 
 
 def page(title, description, canonical, heading, intro, rows, siblings, sib_label):
+    """Een gewone lijstpagina: alle items van een winkel of soort onder elkaar."""
+    return shell(title, description, canonical, heading, intro,
+                 table_html(rows), siblings, sib_label)
+
+
+def table_html(rows):
     e = html.escape
     # Een kolom die op deze pagina overal hetzelfde is (de winkel op een
     # winkelpagina) of overal leeg, zegt niets en gaat eruit.
@@ -179,6 +248,19 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
         attr = f' style="--el:{el}"' if el else ""
         body.append(f"<tr{attr}>" + "".join(cells) + "</tr>")
 
+    return f"""<main class="wrap">
+  <table>
+    <thead>{''.join(head)}</thead>
+    <tbody>
+{chr(10).join('      ' + row for row in body)}
+    </tbody>
+  </table>
+</main>"""
+
+
+def shell(title, description, canonical, heading, intro, main_html, siblings, sib_label):
+    """De omhulling die elke subpagina deelt: kop, stijl, inhoud, voetregel."""
+    e = html.escape
     links = "".join(
         f'<li><a href="{e(href)}">{e(name)}</a> <span>{n}</span></li>'
         for name, href, n in siblings
@@ -250,6 +332,20 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
   .s-main{{display:block}}
   .s-sub{{display:block;color:#949CD0;font-size:13px;margin-top:3px}}
   .note{{color:#949CD0;font-size:13.5px}}
+  h2.sec{{font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;font-size:19px;
+          text-transform:uppercase;margin:38px 0 4px;color:#fff;letter-spacing:.01em}}
+  h2.sec::before{{content:"";display:block;width:54px;height:4px;background:#FFD23F;margin-bottom:11px}}
+  .sec-note{{color:#949CD0;font-size:14px;margin:0}}
+  .jump ul{{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-wrap:wrap;gap:8px}}
+  .jump a{{color:#E9ECFB;text-decoration:none;border:1px solid #2B3369;padding:6px 12px;
+          display:inline-block;font-size:14px;
+          font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+          text-transform:uppercase;letter-spacing:.05em}}
+  .jump a:hover{{border-color:#FFD23F;color:#FFD23F}}
+  .jump span{{color:#949CD0;font-size:13px}}
+  td.rk{{color:#949CD0;font-variant-numeric:tabular-nums;width:34px;text-align:right}}
+  td.val{{color:#FFD23F;font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap;
+         font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif}}
   nav.more{{border-top:1px solid #2B3369;padding:22px 0 8px}}
   nav.more h2{{font-size:15px;color:#949CD0;margin:0 0 10px;font-weight:600}}
   nav.more ul{{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px}}
@@ -278,20 +374,10 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
   </div>
 </header>
 <div class="slash"></div>
-<main class="wrap">
-  <table>
-    <thead>{''.join(head)}</thead>
-    <tbody>
-{chr(10).join('      ' + row for row in body)}
-    </tbody>
-  </table>
-</main>
-<nav class="more wrap">
-  <h2>{e(sib_label)}</h2>
-  <ul>{links}</ul>
-</nav>
+{main_html}
+{f'<nav class="more wrap"><h2>{e(sib_label)}</h2><ul>{links}</ul></nav>' if links else ''}
 <footer class="wrap">
-  <p>Part of the <a href="{SITE}">{e(GAME)} item list</a> &mdash; all 1,879 items, searchable and filterable.
+  <p>Part of the <a href="{SITE}">{e(GAME)} item list</a> &mdash; all {TOTAL:,} items, searchable and filterable.
   Data from the Inazuma Eleven VR Document v3.06 and community guides.</p>
 </footer>
 </body>
@@ -299,11 +385,202 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
 """
 
 
+# ------------------------------------------------------------- ranglijsten
+# Niemand zoekt op "Chronicle Department Store"; mensen zoeken op "best boots".
+# Deze pagina's beantwoorden die vraag rechtstreeks uit de data: per slot en per
+# soort move de hoogste waarden, met de winkel erbij.
+
+SLOT_PAGES = [
+    ("Boots", "boots", "boots",
+     "Every pair of boots ranked by the stat it raises"),
+    ("Pendant", "pendants", "pendants",
+     "Every pendant ranked by the stat it raises"),
+    ("Bracelet", "bracelets", "bracelets",
+     "Every bracelet ranked by the stat it raises"),
+    ("Misc", "misc-equipment", "misc equipment",
+     "Every misc item ranked by the stat it raises"),
+]
+
+MOVE_PAGES = [
+    ("Shoot", "shoot-moves", "shoot moves"),
+    ("Dribble", "dribble-moves", "dribble moves"),
+    ("Block", "block-moves", "block moves"),
+    ("Catch", "catch-moves", "catch moves"),
+]
+
+ELEMENTS = [("火", "Fire"), ("山", "Mountain"), ("林", "Forest"),
+            ("風", "Wind"), ("無", "Void")]
+
+
+def ranked(items, stat, top):
+    """De hoogste <top> items op deze stat.
+
+    Een naam die twee keer voorkomt met precies dezelfde stats is hetzelfde item
+    uit twee winkels; dat telt als een regel, met beide winkels erbij. Lucky
+    Bracelet bestaat wel twee keer met andere stats en blijft dus twee regels.
+    """
+    seen = {}
+    for r in items:
+        v = stat_map(r).get(stat)
+        if v is None:
+            continue
+        key = (r[0], r[3], r[4])
+        if key in seen:
+            if r[2] not in seen[key][1]:
+                seen[key][1].append(r[2])
+            continue
+        seen[key] = [r, [r[2]], v]
+    return sorted(seen.values(), key=lambda e: (-e[2], e[0][0]))[:top]
+
+
+def rank_table(entries, stat, show_element=False):
+    e = html.escape
+    head = ["<tr><th>#</th><th>Item</th>", f"<th>{e(stat)}</th>"]
+    if show_element:
+        head.append("<th>Element</th>")
+    head.append("<th>Stats</th><th>Shop</th></tr>")
+
+    body = []
+    for n, (r, shops, v) in enumerate(entries, 1):
+        play = clip(r[0], r[1]) if r[1] in MOVIE else ""
+        href = f"{SITE}?q={quote(r[0], safe='')}"
+        cells = [f'<td class="rk">{n}</td>',
+                 f'<td class="name"><a class="item" rel="nofollow" href="{href}">{e(r[0])}</a>{play}</td>',
+                 f'<td class="val">{num(v)}</td>']
+        if show_element:
+            cells.append(f"<td>{e(r[6])}</td>")
+        cells.append(f'<td class="stats">{e(stats_text(r))}</td>')
+        cells.append(f"<td>{e(' / '.join(shops))}</td>")
+        el = el_color(r)
+        attr = f' style="--el:{el}"' if el else ""
+        body.append(f"<tr{attr}>" + "".join(cells) + "</tr>")
+
+    return ("  <table>\n    <thead>" + "".join(head) + "</thead>\n    <tbody>\n"
+            + "\n".join("      " + b for b in body) + "\n    </tbody>\n  </table>")
+
+
+def sections_html(sections):
+    """Kopjes met een springlijst erboven, zodat een lange pagina te doen blijft."""
+    e = html.escape
+    jump = "".join(f'<li><a href="#{slug(t)}">{e(t)}</a></li>' for t, _, _ in sections)
+    parts = [f'<nav class="jump"><ul>{jump}</ul></nav>']
+    for title, note, table in sections:
+        parts.append(f'<h2 class="sec" id="{slug(title)}">{e(title)}</h2>')
+        if note:
+            parts.append(f'<p class="sec-note">{e(note)}</p>')
+        parts.append(table)
+    return '<main class="wrap">\n' + "\n".join(parts) + "\n</main>"
+
+
+def best_links(pages):
+    return [(label, f"{SITE}best/{name}.html", n) for label, name, n in pages]
+
+
+def build_best(rows, links):
+    """Acht ranglijstpagina's plus een overzicht."""
+    written = []
+    e = html.escape
+
+    for slot, name, plural, tag in SLOT_PAGES:
+        items = [r for r in rows if r[1] == "Equipment" and r[5] == slot]
+        sections = []
+        for stat in PRIMARY + SECONDARY:
+            entries = ranked(items, stat, TOP_EQUIP)
+            # Onder de vijf items is een ranglijst geen ranglijst.
+            if len(entries) < 5:
+                continue
+            best = entries[0]
+            sections.append((
+                f"Highest {stat}",
+                f"{best[0][0]} leads with {num(best[2])}. "
+                f"{len(entries)} of the {len(items)} {plural} are listed here, highest first.",
+                rank_table(entries, stat),
+            ))
+        canonical = f"{SITE}best/{name}.html"
+        (ROOT / "best" / f"{name}.html").write_text(shell(
+            title=f"Best {plural} in {GAME} &mdash; ranked by stat".replace("&mdash;", "—"),
+            description=(f"The {len(items)} {plural} in {GAME} ranked by every stat they give, "
+                         f"from Kick and Control to Shoot AT and KP, with the shop for each."),
+            canonical=canonical,
+            heading=f"Best {plural}",
+            intro=(f"All {len(items)} {plural} in {GAME}, ranked by each stat they raise. "
+                   f"Pick the stat your player needs and take the top of that list."),
+            main_html=sections_html(sections),
+            siblings=[l for l in links if l[1] != canonical],
+            sib_label="Other rankings",
+        ), encoding="utf-8")
+        written.append(ROOT / "best" / f"{name}.html")
+
+    for kind, name, plural in MOVE_PAGES:
+        items = [r for r in rows if r[1] == "Special Move" and r[5] == kind]
+        sections = []
+        power = ranked(items, "Power", TOP_MOVE)
+        if power:
+            sections.append((
+                "Most powerful",
+                f"The {len(power)} strongest of the {len(items)} {plural}, by Power.",
+                rank_table(power, "Power", show_element=True),
+            ))
+        dur = ranked(items, "Duration", 15)
+        if dur:
+            sections.append((
+                "Longest lasting",
+                "Duration is how long the move runs, in seconds.",
+                rank_table(dur, "Duration", show_element=True),
+            ))
+        for kanji, label in ELEMENTS:
+            sub_items = [r for r in items if (r[6] or "").startswith(kanji)]
+            entries = ranked(sub_items, "Power", 10)
+            if len(entries) < 3:
+                continue
+            sections.append((
+                f"Strongest {label} {plural}",
+                f"{len(sub_items)} {plural} carry the {label} element.",
+                rank_table(entries, "Power"),
+            ))
+        canonical = f"{SITE}best/{name}.html"
+        (ROOT / "best" / f"{name}.html").write_text(shell(
+            title=f"Best {plural} in {GAME} &mdash; ranked by power".replace("&mdash;", "—"),
+            description=(f"The {len(items)} {plural} in {GAME} ranked by Power and Duration, "
+                         f"overall and per element, with the shop that sells each one."),
+            canonical=canonical,
+            heading=f"Best {plural}",
+            intro=(f"All {len(items)} {plural} in {GAME}, ranked by Power and by how long they last, "
+                   f"overall and for each element."),
+            main_html=sections_html(sections),
+            siblings=[l for l in links if l[1] != canonical],
+            sib_label="Other rankings",
+        ), encoding="utf-8")
+        written.append(ROOT / "best" / f"{name}.html")
+
+    hub = ('<main class="wrap">\n<nav class="jump"><ul>'
+           + "".join(f'<li><a href="{e(href.replace(SITE, SITE))}">{e(label)}</a> '
+                     f"<span>{n}</span></li>" for label, href, n in links)
+           + "</ul></nav>\n</main>")
+    (ROOT / "best" / "index.html").write_text(shell(
+        title=f"Best equipment and moves in {GAME}",
+        description=(f"Rankings for every stat in {GAME}: the strongest boots, pendants, "
+                     f"bracelets and misc items, and the most powerful shoot, dribble, "
+                     f"block and catch moves."),
+        canonical=f"{SITE}best/",
+        heading="Best of Victory Road",
+        intro=("Eight rankings, worked out from the item list itself: equipment ordered by "
+               "every stat it gives, and moves ordered by power and duration."),
+        main_html=hub,
+        siblings=[],
+        sib_label="",
+    ), encoding="utf-8")
+    written.append(ROOT / "best" / "index.html")
+    return written
+
+
 # ---------------------------------------------------------------------- bouwen
 
 def build():
+    global TOTAL
     rows = load_rows()
-    for folder in ("shops", "categories"):
+    TOTAL = len(rows)
+    for folder in ("shops", "categories", "best"):
         target = ROOT / folder
         if target.exists():
             shutil.rmtree(target)
@@ -360,6 +637,15 @@ def build():
         ), encoding="utf-8")
         written.append(path)
 
+    rank_links = best_links(
+        [(f"Best {plural}", name, len([r for r in rows
+                                       if r[1] == "Equipment" and r[5] == slot]))
+         for slot, name, plural, _ in SLOT_PAGES]
+        + [(f"Best {plural}", name, len([r for r in rows
+                                         if r[1] == "Special Move" and r[5] == kind]))
+           for kind, name, plural in MOVE_PAGES])
+    written += build_best(rows, rank_links)
+
     urls = [SITE] + [f"{SITE}{p.relative_to(ROOT).as_posix()}" for p in written]
     today = date.today().isoformat()
     entries = "\n".join(
@@ -373,13 +659,13 @@ def build():
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         f"{entries}\n</urlset>\n", encoding="utf-8")
 
-    write_browse_block(shop_links, cat_links)
+    write_browse_block(shop_links, cat_links, rank_links)
 
     print(f"{len(written)} pagina's, {len(urls)} URL's in de sitemap")
     return shop_links, cat_links
 
 
-def write_browse_block(shop_links, cat_links):
+def write_browse_block(shop_links, cat_links, rank_links):
     """Zet de links naar de subpagina's in index.html tussen de markers.
 
     Zonder deze links zijn het weespagina's: bezoekers vinden ze niet en
@@ -394,6 +680,7 @@ def write_browse_block(shop_links, cat_links):
         return f"  <h2>{label}</h2>\n  <ul>{items}</ul>\n"
 
     body = ("  <!-- browse:start -->\n"
+            + block('Best of &mdash; <a href="best/">all rankings</a>', rank_links)
             + block("Browse by shop", shop_links)
             + block("Browse by category", cat_links)
             + "  <!-- browse:end -->")

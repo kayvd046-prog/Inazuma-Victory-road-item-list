@@ -69,6 +69,20 @@
   .s-main{display:block}
   .s-sub{display:block;color:#949CD0;font-size:13px;margin-top:3px}
   .note{color:#949CD0;font-size:13.5px}
+  h2.sec{font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;font-size:19px;
+          text-transform:uppercase;margin:38px 0 4px;color:#fff;letter-spacing:.01em}
+  h2.sec::before{content:"";display:block;width:54px;height:4px;background:#FFD23F;margin-bottom:11px}
+  .sec-note{color:#949CD0;font-size:14px;margin:0}
+  .jump ul{list-style:none;padding:0;margin:18px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+  .jump a{color:#E9ECFB;text-decoration:none;border:1px solid #2B3369;padding:6px 12px;
+          display:inline-block;font-size:14px;
+          font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+          text-transform:uppercase;letter-spacing:.05em}
+  .jump a:hover{border-color:#FFD23F;color:#FFD23F}
+  .jump span{color:#949CD0;font-size:13px}
+  td.rk{color:#949CD0;font-variant-numeric:tabular-nums;width:34px;text-align:right}
+  td.val{color:#FFD23F;font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap;
+         font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif}
   nav.more{border-top:1px solid #2B3369;padding:22px 0 8px}
   nav.more h2{font-size:15px;color:#949CD0;margin:0 0 10px;font-weight:600}
   nav.more ul{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px}
@@ -311,12 +325,9 @@
     </tbody>
   </table>
 </main>
-<nav class="more wrap">
-  <h2>Other shops</h2>
-  <ul><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/chronicle-department-store.html">Chronicle Department Store</a> <span>425</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/vs-store.html">VS Store</a> <span>329</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/special-training-booth.html">Special Training Booth</a> <span>225</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/magic-moves-odaiba-branch.html">Magic Moves (Odaiba Branch)</a> <span>138</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/chronicle-rare-drop-battle.html">Chronicle - Rare Drop Battle</a> <span>137</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/chronicle-hero-battle.html">Chronicle - Hero Battle</a> <span>136</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/magic-moves-arcade-branch.html">Magic Moves (Arcade Branch)</a> <span>115</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/g-mart-arcade-branch.html">G-Mart (Arcade Branch)</a> <span>36</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/bb-mart.html">BB Mart</a> <span>31</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/kool-kit-odaiba-branch.html">Kool Kit (Odaiba Branch)</a> <span>30</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/g-mart-odaiba-branch.html">G-Mart (Odaiba Branch)</a> <span>22</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/bond-shop.html">Bond Shop</a> <span>21</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/legendary-chest-not-purchasable.html">Legendary Chest (not purchasable)</a> <span>10</span></li></ul>
-</nav>
+<nav class="more wrap"><h2>Other shops</h2><ul><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/chronicle-department-store.html">Chronicle Department Store</a> <span>425</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/vs-store.html">VS Store</a> <span>329</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/special-training-booth.html">Special Training Booth</a> <span>225</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/magic-moves-odaiba-branch.html">Magic Moves (Odaiba Branch)</a> <span>138</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/chronicle-rare-drop-battle.html">Chronicle - Rare Drop Battle</a> <span>137</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/chronicle-hero-battle.html">Chronicle - Hero Battle</a> <span>136</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/magic-moves-arcade-branch.html">Magic Moves (Arcade Branch)</a> <span>115</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/g-mart-arcade-branch.html">G-Mart (Arcade Branch)</a> <span>36</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/bb-mart.html">BB Mart</a> <span>31</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/kool-kit-odaiba-branch.html">Kool Kit (Odaiba Branch)</a> <span>30</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/g-mart-odaiba-branch.html">G-Mart (Odaiba Branch)</a> <span>22</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/bond-shop.html">Bond Shop</a> <span>21</span></li><li><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/shops/legendary-chest-not-purchasable.html">Legendary Chest (not purchasable)</a> <span>10</span></li></ul></nav>
 <footer class="wrap">
-  <p>Part of the <a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/">Inazuma Eleven: Victory Road item list</a> &mdash; all 1,879 items, searchable and filterable.
+  <p>Part of the <a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/">Inazuma Eleven: Victory Road item list</a> &mdash; all 1,878 items, searchable and filterable.
   Data from the Inazuma Eleven VR Document v3.06 and community guides.</p>
 </footer>
 </body>
