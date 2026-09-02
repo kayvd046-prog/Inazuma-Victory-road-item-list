@@ -11,6 +11,7 @@ import html
 import json
 import re
 import shutil
+import base64
 import unicodedata
 from urllib.parse import quote
 from datetime import date
@@ -91,17 +92,35 @@ MOVIE = {"Special Move", "Hyper Move"}
 CODEX = "zukan.inazuma.jp"
 
 
-def clip(name):
-    """Doorverwijzing naar de move in de officiele Player Codex.
+def codex_url(name):
+    """Zoekopdracht in de Player Codex, in de vorm die die site zelf gebruikt.
 
-    Die site adresseert zijn pagina's op een manier die we niet kunnen nagaan,
-    dus zoeken we er gericht in plaats van een adres te gokken.
+    De JSON {"name_filter":["<naam>"]} met elke byte omgekeerd (XOR 0xFF), dan
+    base64, dan percent-gecodeerd: bij 388 van de movenamen bevat de base64 een
+    '+', die anders als spatie zou worden gelezen. Zelfde uitkomst als codexURL()
+    in index.html.
     """
-    # Zelfde codering als encodeURIComponent in index.html.
-    q = quote(f"site:{CODEX} {name}", safe="")
+    payload = json.dumps({"name_filter": [name.lower()]},
+                         separators=(",", ":"), ensure_ascii=False)
+    blob = base64.b64encode(bytes(b ^ 0xFF for b in payload.encode())).decode()
+    return f"https://{CODEX}/en/skill/?q={quote(blob, safe='')}"
+
+
+# encodeURIComponent laat deze tekens staan; met dezelfde lijst geeft quote()
+# letter voor letter dezelfde URL als index.html.
+URI_SAFE = "!*'()"
+
+
+def site_search(name):
+    """Voor hyper moves kennen we het pad in de codex niet, dus zoeken we ernaar."""
+    return f"https://www.google.com/search?q={quote(f'site:{CODEX} {name}', safe=URI_SAFE)}"
+
+
+def clip(name, category):
+    href = codex_url(name) if category == "Special Move" else site_search(name)
     return (f' <a class="codex" target="_blank" rel="noopener nofollow"'
             f' title="Look up {html.escape(name)} in the Inazuma Eleven Player Codex"'
-            f' href="https://www.google.com/search?q={q}">codex &#8599;</a>')
+            f' href="{href}">codex &#8599;</a>')
 
 
 def page(title, description, canonical, heading, intro, rows, siblings, sib_label):
@@ -126,7 +145,7 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
 
     body = []
     for r in rows:
-        play = clip(r[0]) if r[1] in MOVIE else ""
+        play = clip(r[0], r[1]) if r[1] in MOVIE else ""
         # Naar het item in de doorzoekbare lijst; nofollow zodat Google niet 1.879
         # querystring-varianten van dezelfde pagina gaat crawlen.
         href = f"{SITE}?q={quote(r[0], safe='')}"

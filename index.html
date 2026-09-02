@@ -2621,15 +2621,27 @@ const noteOf =(d,i)=>NOTE[i];
 const statsOf=(d,i)=>[mainOf(d,i),subOf(d,i)].filter(Boolean).join(' \u00b7 ');
 const filled=v=>!!v&&v!=='\u2014';
 
-// Doorverwijzing naar de officiele Player Codex. Die site adresseert zijn pagina's
-// op een manier die we hier niet kunnen nagaan, dus zoeken we er gericht in
-// plaats van een adres te gokken dat stuk kan zijn.
+// Doorverwijzing naar de officiele Player Codex.
+//
+// Die site zet de zoekopdracht versleuteld in de URL: de JSON
+// {"name_filter":["<naam>"]}, elke byte omgekeerd met XOR 0xFF, dan base64. Het
+// resultaat moet nog percent-gecodeerd worden, want bij 388 van de movenamen komt
+// er een '+' in de base64 en die zou als spatie worden gelezen.
 const CODEX='zukan.inazuma.jp';
+function codexURL(name){
+  const bytes=new TextEncoder().encode(JSON.stringify({name_filter:[name.toLowerCase()]}));
+  let bin=''; for(const b of bytes) bin+=String.fromCharCode(b^0xFF);
+  return `https://${CODEX}/en/skill/?q=${encodeURIComponent(btoa(bin))}`;
+}
+// Voor hyper moves kennen we het pad in de codex niet - /en/skill/ is de sectie
+// voor special moves - dus die houden voorlopig de zoekopdracht die het altijd doet.
+const siteSearch=name=>`https://www.google.com/search?q=${encodeURIComponent('site:'+CODEX+' '+name)}`;
+
 const MOVIE=new Set(['Special Move','Hyper Move']);
 const clip=d=>MOVIE.has(d[1])
   ? ` <a class="codex" target="_blank" rel="noopener nofollow"`
     + ` title="Look up ${esc(d[0])} in the Inazuma Eleven Player Codex"`
-    + ` href="https://www.google.com/search?q=${encodeURIComponent('site:'+CODEX+' '+d[0])}"`
+    + ` href="${d[1]==='Special Move'?codexURL(d[0]):siteSearch(d[0])}"`
     + `>codex &#8599;</a>`
   : '';
 
