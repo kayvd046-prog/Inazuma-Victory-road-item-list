@@ -88,17 +88,20 @@ def note_text(row):
 MOVIE = {"Special Move", "Hyper Move"}
 
 
-def clip(name):
-    """Zoeklink naar beeldmateriaal van een move.
+CODEX = "zukan.inazuma.jp"
 
-    De dataset bevat geen beeld en het spelmateriaal is niet van ons om te
-    hosten, dus verwijzen we naar een zoekopdracht in plaats daarvan.
+
+def clip(name):
+    """Doorverwijzing naar de move in de officiele Player Codex.
+
+    Die site adresseert zijn pagina's op een manier die we niet kunnen nagaan,
+    dus zoeken we er gericht in plaats van een adres te gokken.
     """
     # Zelfde codering als encodeURIComponent in index.html.
-    q = quote(f"Inazuma Eleven Victory Road {name}", safe="")
-    return (f' <a class="play" target="_blank" rel="noopener nofollow"'
-            f' title="Watch {html.escape(name)} on YouTube"'
-            f' href="https://www.youtube.com/results?search_query={q}">&#9654;</a>')
+    q = quote(f"site:{CODEX} {name}", safe="")
+    return (f' <a class="codex" target="_blank" rel="noopener nofollow"'
+            f' title="Look up {html.escape(name)} in the Inazuma Eleven Player Codex"'
+            f' href="https://www.google.com/search?q={q}">codex &#8599;</a>')
 
 
 def page(title, description, canonical, heading, intro, rows, siblings, sib_label):
@@ -198,8 +201,8 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
   .name{{font-weight:600}}
   a.item{{color:inherit;text-decoration:none}}
   a.item:hover{{color:#FFD23F;text-decoration:underline}}
-  .play{{color:#949CD0;text-decoration:none;font-size:11px;vertical-align:middle;border:1px solid #2B3369;border-radius:2px;padding:1px 5px;margin-left:6px}}
-  .play:hover{{color:#FF6B35;border-color:#FF6B35}}
+  .codex{{color:#949CD0;text-decoration:none;font-size:10.5px;vertical-align:middle;white-space:nowrap;letter-spacing:.03em;text-transform:uppercase;border:1px solid #2B3369;border-radius:2px;padding:1px 5px;margin-left:7px}}
+  .codex:hover{{color:#FF6B35;border-color:#FF6B35}}
   .cost{{font-size:14px}}
   .stats{{color:#FFD23F;font-size:14px}}
   .s-main{{display:block}}

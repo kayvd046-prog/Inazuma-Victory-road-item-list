@@ -17,6 +17,8 @@ objects, kits and emblems.
   shared as a link.
 - Every item name is a link to that one item, so you can share a direct link to a single
   entry instead of the whole list.
+- Every special move and hyper move has a **codex** link that looks it up in the official
+  Inazuma Eleven Player Codex.
 - Spotted something wrong or missing? **Submit changes** opens a prefilled issue.
 
 Alongside the searchable index there is a plain page per shop and per category — Spirit Market,
