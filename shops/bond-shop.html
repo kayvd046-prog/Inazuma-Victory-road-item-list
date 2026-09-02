@@ -36,16 +36,29 @@
 </script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:#0B0F2B;color:#E9ECFB;font-family:'Barlow','Helvetica Neue',system-ui,sans-serif;font-size:15px;line-height:1.5}
+  body{margin:0;color:#E9ECFB;font-family:'Barlow','Helvetica Neue',system-ui,sans-serif;font-size:15px;line-height:1.5;
+        background:radial-gradient(1100px 480px at 78% -6%, rgba(255,107,53,.20), transparent 62%),
+                   radial-gradient(760px 420px at 6% 0%, rgba(255,210,63,.10), transparent 60%),#0B0F2B;
+        background-attachment:fixed}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+        background:repeating-linear-gradient(-19deg, rgba(255,210,63,.055) 0 2px, transparent 2px 26px)}
   .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
-  header{border-bottom:2px solid #FFD23F;padding:34px 0 20px}
+  header{padding:34px 0 22px;display:flex;align-items:flex-start;gap:20px}
+  .bolt-mark{flex:none;margin-top:4px}
   .crumb{color:#949CD0;font-size:14px;margin:0 0 10px}
   .crumb a{color:#FFD23F}
-  h1{font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;font-size:clamp(26px,5vw,42px);line-height:1;margin:0 0 10px;text-transform:uppercase}
+  h1{font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;font-size:clamp(26px,5vw,42px);
+      line-height:1;margin:0 0 10px;text-transform:uppercase;text-shadow:4px 4px 0 #1B2250}
+  .slash{height:12px;background:linear-gradient(90deg,#FFD23F,#FF6B35 70%,#FFD23F);
+      clip-path:polygon(0 0,100% 0,100% 62%,0 100%)}
   .lede{color:#949CD0;max-width:70ch;margin:0}
   table{width:100%;border-collapse:collapse;margin:22px 0 8px}
-  th{text-align:left;color:#949CD0;font-size:14px;padding:10px 12px;border-bottom:1px solid #2B3369;white-space:nowrap}
+  th{text-align:left;color:#949CD0;font-size:14px;padding:10px 12px;border-bottom:3px solid #FFD23F;
+      white-space:nowrap;font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+      text-transform:uppercase;letter-spacing:.10em;font-weight:600}
   td{padding:10px 12px;border-bottom:1px solid #1B2250;vertical-align:top}
+  tbody tr{border-left:4px solid var(--el, transparent)}
+  tbody td:first-child{padding-left:14px}
   .name{font-weight:600}
   a.item{color:inherit;text-decoration:none}
   a.item:hover{color:#FFD23F;text-decoration:underline}
@@ -74,10 +87,16 @@
 </head>
 <body>
 <header class="wrap">
-  <p class="crumb"><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/">Inazuma Eleven: Victory Road item list</a></p>
-  <h1>Bond Shop</h1>
-  <p class="lede">Every one of the 21 items Bond Shop offers in Inazuma Eleven: Victory Road, with what each one costs or the stats it gives.</p>
+  <svg class="bolt-mark" width="34" height="47" viewBox="0 0 62 86" fill="none" aria-hidden="true">
+    <path d="M38 2 6 50h20L20 84 56 32H34L38 2Z" fill="#FFD23F" stroke="#0B0F2B" stroke-width="3"/>
+  </svg>
+  <div>
+    <p class="crumb"><a href="https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/">Inazuma Eleven: Victory Road item list</a></p>
+    <h1>Bond Shop</h1>
+    <p class="lede">Every one of the 21 items Bond Shop offers in Inazuma Eleven: Victory Road, with what each one costs or the stats it gives.</p>
+  </div>
 </header>
+<div class="slash"></div>
 <main class="wrap">
   <table>
     <thead><tr><th>Item</th><th>Category</th><th>Cost / source</th><th>Stats</th><th>Type</th><th>Details</th></tr></thead>

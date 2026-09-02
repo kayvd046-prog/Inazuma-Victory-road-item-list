@@ -124,9 +124,18 @@
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
+  /* Manga-snelheidslijnen: vast achter de pagina, laag genoeg om tekst niet te storen. */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(-19deg, rgba(255,210,63,.055) 0 2px, transparent 2px 26px);
+  }
   body{
     margin:0;
-    background:var(--ink);
+    background:
+      radial-gradient(1100px 480px at 78% -6%, rgba(255,107,53,.20), transparent 62%),
+      radial-gradient(760px 420px at 6% 0%, rgba(255,210,63,.10), transparent 60%),
+      var(--ink);
+    background-attachment:fixed;
     color:var(--text);
     font-family:'Barlow','Helvetica Neue',system-ui,sans-serif;
     font-size:15px;
@@ -136,23 +145,45 @@
 
   /* ---------- Kop ---------- */
   header{
-    border-bottom:2px solid var(--bolt);
-    padding:36px 24px 22px;
+    padding:38px 24px 26px;
     max-width:1180px;
     margin:0 auto;
+    display:flex;
+    align-items:flex-start;
+    gap:26px;
+  }
+  header .bolt-mark{flex:none;margin-top:6px}
+  .kicker{
+    font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+    font-size:clamp(13px,1.6vw,19px);font-weight:700;letter-spacing:.30em;
+    color:var(--muted);margin:0 0 8px;
+  }
+  /* De diagonale slash: hetzelfde motief als de bliksem in de kop. */
+  .slash{
+    height:14px;margin-bottom:0;
+    background:linear-gradient(90deg,var(--bolt),var(--flame) 70%,var(--bolt));
+    clip-path:polygon(0 0,100% 0,100% 62%,0 100%);
   }
   h1{
     font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;
-    font-size:clamp(30px,6vw,52px);
-    line-height:.94;
+    font-size:clamp(42px,8.4vw,88px);
+    line-height:.84;
     letter-spacing:-.02em;
-    margin:0 0 10px;
+    margin:0 0 14px;
     text-transform:uppercase;
   }
-  h1 span{display:block;color:var(--bolt)}
+  /* Twee regels met harde offset-schaduw: de impacttypografie uit de anime. */
+  h1 .l1{display:block;text-shadow:5px 5px 0 var(--panel-2)}
+  h1 .l2{display:block;color:var(--bolt);text-shadow:5px 5px 0 var(--flame)}
+  @media (max-width:720px){
+    h1 .l1,h1 .l2{text-shadow:3px 3px 0 var(--panel-2)}
+    h1 .l2{text-shadow:3px 3px 0 var(--flame)}
+    header{gap:14px}
+    header .bolt-mark{width:34px;height:47px}
+  }
   .lede{
-    color:var(--muted);
-    max-width:62ch;
+    color:#B6BDE8;
+    max-width:64ch;
     margin:0;
   }
   .lede b{color:var(--text);font-weight:600}
@@ -169,16 +200,23 @@
   }
   .controls-inner{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
   /* De winkelkeuze groeit anders mee met de langste winkelnaam en duwt de knoppen naar de volgende regel. */
-  .controls-inner select{max-width:240px}
+  .controls-inner select{
+    max-width:240px;height:46px;background:var(--ink);color:var(--text);
+    border:2px solid var(--line);border-radius:0;padding:0 12px;
+    font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+    font-size:16px;font-weight:600;
+  }
+  .controls-inner select:hover{border-color:var(--bolt)}
   .search{
     flex:1 1 220px;
     display:flex;
     align-items:center;
-    gap:10px;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:0 12px;
+    gap:11px;
+    height:46px;
+    background:var(--ink);
+    border:2px solid var(--line);
+    border-radius:0;
+    padding:0 14px;
   }
   .search:focus-within{border-color:var(--bolt)}
   .search svg{flex:none;opacity:.6}
@@ -203,31 +241,44 @@
   }
   select:focus{border-color:var(--bolt)}
   .clear{
-    background:none;border:1px solid var(--line);color:var(--muted);
-    font:inherit;padding:10px 14px;border-radius:var(--radius);cursor:pointer;
+    background:var(--ink);border:2px solid var(--line);color:var(--text);
+    font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+    font-size:16px;font-weight:600;
+    padding:0 16px;height:46px;border-radius:0;cursor:pointer;
   }
-  .clear:hover{color:var(--text);border-color:var(--bolt)}
-  a.clear{text-decoration:none;display:inline-block;white-space:nowrap}
+  /* Clear is de enige actieknop, dus die krijgt het goud en de afgeschuinde hoek. */
+  #reset{
+    background:var(--bolt);border-color:var(--bolt);color:#12142e;font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;
+    clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);
+  }
+  #reset:hover{background:var(--flame);border-color:var(--flame);color:#fff}
+  .clear:hover{border-color:var(--bolt)}
+  a.clear{text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap}
+  /* Zeven filters passen niet op een regel; deze secundaire actie krijgt daarom
+     bewust de rechterkant van de tweede regel in plaats van verweesd links te staan. */
+  #submit{margin-left:auto}
   .clear:focus-visible,#q:focus-visible{outline:2px solid var(--bolt);outline-offset:2px}
 
-  .clear.primary{border-color:var(--bolt);color:var(--bolt)}
-  .clear.primary:hover{background:var(--bolt);color:#12142e}
 
 
   .chips{max-width:1180px;margin:0 auto;padding:10px 24px 0;display:flex;flex-wrap:wrap;gap:6px}
   .chip{
     font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
-    font-size:14px;
-    letter-spacing:.02em;
+    font-size:15px;font-weight:600;
+    letter-spacing:.05em;text-transform:uppercase;
     background:transparent;
     border:1px solid var(--line);
     color:var(--muted);
-    padding:5px 11px;
-    border-radius:100px;
+    padding:6px 17px;
+    border-radius:0;
+    transform:skewX(-11deg);
     cursor:pointer;
   }
-  .chip:hover{color:var(--text)}
-  .chip[aria-pressed="true"]{background:var(--bolt);border-color:var(--bolt);color:#12142e;font-weight:600}
+  /* De tekst in de chip wordt teruggedraaid zodat die recht blijft staan. */
+  .chip > span{display:inline-block;transform:skewX(11deg)}
+  .chip:hover{border-color:var(--bolt);color:var(--bolt)}
+  .chip[aria-pressed="true"]{background:var(--bolt);border-color:var(--bolt);color:#12142e;font-weight:700}
 
   /* Gekozen stats: verschijnen pas zodra je er een kiest, dus in rust blijft de
      kop net zo licht als voorheen. */
@@ -253,8 +304,14 @@
 
   /* ---------- Teller ---------- */
   .count{
-    max-width:1180px;margin:0 auto;padding:16px 24px 0;
-    color:var(--muted);font-size:14px;
+    max-width:1180px;margin:0 auto;padding:18px 24px 0;
+    font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+    color:var(--muted);font-size:17px;text-transform:uppercase;letter-spacing:.12em;
+  }
+  .count b{
+    font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;
+    font-size:34px;color:var(--bolt);letter-spacing:0;
+    vertical-align:-3px;margin-right:5px;font-variant-numeric:tabular-nums;
   }
   .count b{color:var(--bolt);font-weight:600}
 
@@ -270,7 +327,8 @@
     font-size:14px;
     color:var(--muted);
     padding:10px 12px;
-    border-bottom:1px solid var(--line);
+    border-bottom:3px solid var(--bolt);
+    letter-spacing:.10em;
     white-space:nowrap;
   }
   thead th.sortable{padding:0}
@@ -294,6 +352,12 @@
     vertical-align:top;
   }
   tbody tr:hover td{background:var(--panel)}
+  /* Elke rij krijgt de kleur van zijn element als linkerbalk; rijen zonder
+     element blijven neutraal. De kleur komt uit --el, per rij gezet. */
+  tbody tr{border-left:4px solid var(--el, transparent)}
+  tbody tr[style*="--el"]{background:linear-gradient(90deg, color-mix(in srgb, var(--el) 9%, transparent), transparent 34%)}
+  tbody td:first-child{padding-left:14px}
+  .el{font-weight:600;color:var(--el, inherit)}
   .name{font-weight:600}
   a.item{color:inherit;text-decoration:none}
   a.item:hover{color:var(--bolt);text-decoration:underline}
@@ -380,9 +444,16 @@
 <body>
 
 <header>
-  <h1>Inazuma Eleven: Victory Road<span>item list</span></h1>
+  <svg class="bolt-mark" width="62" height="86" viewBox="0 0 62 86" fill="none" aria-hidden="true">
+    <path d="M38 2 6 50h20L20 84 56 32H34L38 2Z" fill="#FFD23F" stroke="#0B0F2B" stroke-width="3"/>
+  </svg>
+  <div>
+  <p class="kicker">Inazuma Eleven &middot; Victory Road</p>
+  <h1><span class="l1">Item</span><span class="l2">List</span></h1>
   <p class="lede">Every one of the 1,878 items in <b>Inazuma Eleven: Victory Road</b> and where it comes from &mdash; special moves, hyper moves, Keshin, Totems, tactics, equipment, kits and emblems. Search by item name, shop, team or currency, and filter by category, type, element or the stat an item gives.</p>
+  </div>
 </header>
+<div class="slash"></div>
 
 <div class="controls">
   <div class="controls-inner">
@@ -2528,7 +2599,8 @@ fillShops();
 // Categoriechips
 CATS.forEach(c=>{
   const b=document.createElement('button');
-  b.className='chip'; b.type='button'; b.textContent=c;
+  b.className='chip'; b.type='button';
+  b.append(Object.assign(document.createElement('span'),{textContent:c}));
   b.setAttribute('aria-pressed','false');
   b.onclick=()=>{
     active.has(c)?active.delete(c):active.add(c);
@@ -2637,6 +2709,11 @@ function codexURL(name){
 // voor special moves - dus die houden voorlopig de zoekopdracht die het altijd doet.
 const siteSearch=name=>`https://www.google.com/search?q=${encodeURIComponent('site:'+CODEX+' '+name)}`;
 
+// De vijf elementen uit het spel. Hun kanji staat al in de data; hier krijgen ze
+// eindelijk kleur: als linkerbalk op de rij en op de kanji zelf.
+const EL_COLOR={'\u706b':'#FF6B35','\u5c71':'#D98C3A','\u6797':'#3EA97B','\u98a8':'#4A9BD0','\u7121':'#9A7BD0'};
+const elColor=d=>EL_COLOR[(d[6]||'').charAt(0)]||'';
+
 const MOVIE=new Set(['Special Move','Hyper Move']);
 const clip=d=>MOVIE.has(d[1])
   ? ` <a class="codex" target="_blank" rel="noopener nofollow"`
@@ -2658,15 +2735,25 @@ function statCell(d,i,terms){
        + (sub?`<span class="s-sub">${hi(sub,terms)}</span>`:'');
 }
 
+// Kleurt de elementnaam in de toelichting, zonder de tekst te veranderen: puur
+// een span eromheen, zodat zoeken en tests dezelfde inhoud blijven zien.
+function elMark(html,d){
+  const el=d[6];
+  if(!el||!elColor(d)) return html;
+  const e=esc(el);
+  return html.includes(e) ? html.replace(e,`<span class="el">${e}</span>`) : html;
+}
+
 function rowHTML([d,i],terms){
-  return `<tr>
+  const el=elColor(d);
+  return `<tr${el?` style="--el:${el}"`:''}>
     <td class="name" data-l="Item"><a class="item" rel="nofollow" href="${itemHref(d[0])}">${hi(d[0],terms)}</a>${clip(d)}</td>
     <td data-l="Category"><span class="tag ${CLS[d[1]]||'t-item'}">${esc(d[1])}</span></td>
     <td class="shop" data-l="Shop">${hi(d[2],terms)}</td>
     <td class="cost" data-l="Cost">${hi(costOf(d,i),terms)}</td>
     <td class="stats" data-l="Stats">${statCell(d,i,terms)}</td>
     <td class="shop" data-l="Type">${d[5]&&d[5]!=='?'?esc(d[5]):''}</td>
-    <td class="note" data-l="Details">${hi(noteOf(d,i),terms)}</td>
+    <td class="note" data-l="Details">${elMark(hi(noteOf(d,i),terms),d)}</td>
   </tr>`;
 }
 

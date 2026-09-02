@@ -88,6 +88,14 @@ def note_text(row):
 
 MOVIE = {"Special Move", "Hyper Move"}
 
+# Dezelfde elementkleuren als index.html; de kanji staan al in de data.
+EL_COLOR = {"火": "#FF6B35", "山": "#D98C3A", "林": "#3EA97B",
+            "風": "#4A9BD0", "無": "#9A7BD0"}
+
+
+def el_color(row):
+    return EL_COLOR.get((row[6] or "")[:1], "")
+
 
 CODEX = "zukan.inazuma.jp"
 
@@ -167,7 +175,9 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
             cells.append(f'<td>{e(r[5]) if r[5] and r[5] != "?" else ""}</td>')
         if show_note:
             cells.append(f'<td class="note">{e(note_text(r))}</td>')
-        body.append("<tr>" + "".join(cells) + "</tr>")
+        el = el_color(r)
+        attr = f' style="--el:{el}"' if el else ""
+        body.append(f"<tr{attr}>" + "".join(cells) + "</tr>")
 
     links = "".join(
         f'<li><a href="{e(href)}">{e(name)}</a> <span>{n}</span></li>'
@@ -207,16 +217,29 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
 </script>
 <style>
   *{{box-sizing:border-box}}
-  body{{margin:0;background:#0B0F2B;color:#E9ECFB;font-family:'Barlow','Helvetica Neue',system-ui,sans-serif;font-size:15px;line-height:1.5}}
+  body{{margin:0;color:#E9ECFB;font-family:'Barlow','Helvetica Neue',system-ui,sans-serif;font-size:15px;line-height:1.5;
+        background:radial-gradient(1100px 480px at 78% -6%, rgba(255,107,53,.20), transparent 62%),
+                   radial-gradient(760px 420px at 6% 0%, rgba(255,210,63,.10), transparent 60%),#0B0F2B;
+        background-attachment:fixed}}
+  body::before{{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+        background:repeating-linear-gradient(-19deg, rgba(255,210,63,.055) 0 2px, transparent 2px 26px)}}
   .wrap{{max-width:1180px;margin:0 auto;padding:0 24px}}
-  header{{border-bottom:2px solid #FFD23F;padding:34px 0 20px}}
+  header{{padding:34px 0 22px;display:flex;align-items:flex-start;gap:20px}}
+  .bolt-mark{{flex:none;margin-top:4px}}
   .crumb{{color:#949CD0;font-size:14px;margin:0 0 10px}}
   .crumb a{{color:#FFD23F}}
-  h1{{font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;font-size:clamp(26px,5vw,42px);line-height:1;margin:0 0 10px;text-transform:uppercase}}
+  h1{{font-family:'Archivo Black','Helvetica Neue',system-ui,sans-serif;font-size:clamp(26px,5vw,42px);
+      line-height:1;margin:0 0 10px;text-transform:uppercase;text-shadow:4px 4px 0 #1B2250}}
+  .slash{{height:12px;background:linear-gradient(90deg,#FFD23F,#FF6B35 70%,#FFD23F);
+      clip-path:polygon(0 0,100% 0,100% 62%,0 100%)}}
   .lede{{color:#949CD0;max-width:70ch;margin:0}}
   table{{width:100%;border-collapse:collapse;margin:22px 0 8px}}
-  th{{text-align:left;color:#949CD0;font-size:14px;padding:10px 12px;border-bottom:1px solid #2B3369;white-space:nowrap}}
+  th{{text-align:left;color:#949CD0;font-size:14px;padding:10px 12px;border-bottom:3px solid #FFD23F;
+      white-space:nowrap;font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
+      text-transform:uppercase;letter-spacing:.10em;font-weight:600}}
   td{{padding:10px 12px;border-bottom:1px solid #1B2250;vertical-align:top}}
+  tbody tr{{border-left:4px solid var(--el, transparent)}}
+  tbody td:first-child{{padding-left:14px}}
   .name{{font-weight:600}}
   a.item{{color:inherit;text-decoration:none}}
   a.item:hover{{color:#FFD23F;text-decoration:underline}}
@@ -245,10 +268,16 @@ def page(title, description, canonical, heading, intro, rows, siblings, sib_labe
 </head>
 <body>
 <header class="wrap">
-  <p class="crumb"><a href="{SITE}">{e(GAME)} item list</a></p>
-  <h1>{e(heading)}</h1>
-  <p class="lede">{e(intro)}</p>
+  <svg class="bolt-mark" width="34" height="47" viewBox="0 0 62 86" fill="none" aria-hidden="true">
+    <path d="M38 2 6 50h20L20 84 56 32H34L38 2Z" fill="#FFD23F" stroke="#0B0F2B" stroke-width="3"/>
+  </svg>
+  <div>
+    <p class="crumb"><a href="{SITE}">{e(GAME)} item list</a></p>
+    <h1>{e(heading)}</h1>
+    <p class="lede">{e(intro)}</p>
+  </div>
 </header>
+<div class="slash"></div>
 <main class="wrap">
   <table>
     <thead>{''.join(head)}</thead>
