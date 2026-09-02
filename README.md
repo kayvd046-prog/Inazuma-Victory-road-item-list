@@ -7,7 +7,7 @@ from: special moves, hyper moves (Keshin, Totems, Awakenings), tactics, equipmen
 objects, kits and emblems.
 
 - Search by item name, shop, team or currency — words may be typed in any order.
-- Filter by shop, category, move type (Shoot / Offense / Defense / Catch) and element.
+- Filter by shop, category, move type (Shoot / Dribble / Block / Catch) and element.
 - Filter by any of the 18 stats an item gives: the base stats (Kick, Control, Technique,
   Intelligence, Pressure, Agility, Physical), the combat stats (Shoot AT, Focus AT, Focus DF,
   Scramble AT, Scramble DF, Wall DF, KP), or a move's Power, Tension, Duration or cooldown.
