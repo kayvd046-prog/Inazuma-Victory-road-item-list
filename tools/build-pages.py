@@ -119,8 +119,8 @@ def site_search(name):
 def clip(name, category):
     href = codex_url(name) if category == "Special Move" else site_search(name)
     return (f' <a class="codex" target="_blank" rel="noopener nofollow"'
-            f' title="Look up {html.escape(name)} in the Inazuma Eleven Player Codex"'
-            f' href="{href}">codex &#8599;</a>')
+            f' title="Watch {html.escape(name)} in the Inazuma Eleven Player Codex"'
+            f' href="{href}">video &#8599;</a>')
 
 
 def page(title, description, canonical, heading, intro, rows, siblings, sib_label):
