@@ -2,7 +2,7 @@
 
 **<https://kayvd046-prog.github.io/Inazuma-Victory-road-item-list/>**
 
-A searchable index of 1,878 items in *Inazuma Eleven: Victory Road* and where each one comes
+A searchable index of 2,067 items in *Inazuma Eleven: Victory Road* and where each one comes
 from: special moves, hyper moves (Keshin, Totems, Awakenings), tactics, equipment, Bond Town
 objects, kits and emblems.
 
@@ -32,7 +32,10 @@ Chronicle Department Store, all Keshin, all boots, and so on — plus eight rank
 `best/`: every piece of equipment ordered by each stat it gives, and the shoot, dribble, block and
 catch moves ordered by power and duration. All of them are linked from the bottom of the main page.
 
-Items added to the game after March 2026 are not included.
+The list started from a community document of March 2026; the 189 moves, equipment and tactics that
+the Ares and Orion routes and the updates after them added were imported from a datamined dump of
+game version 6.00.23.00 (`tools/import-dataminer.py`). Kits and emblems for those routes are not in
+that dump and are still missing.
 
 ## Editing the data
 
