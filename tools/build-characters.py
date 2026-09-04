@@ -2,9 +2,15 @@
 """Bouwt characters.json uit de datamined dump.
 
 Dit is het enige databestand naast index.html. Het draagt per character de
-zeven basisstats op level 50 en 99, dezelfde veertien voor de Hero- en
-Fabled-versie waar het spel die kent, en de moves die hij leert met het level
-erbij. De bouwer haalt het pas op zodra je hem openklapt.
+zeven basisstats op level 50 en 99, en dezelfde veertien voor de Hero- en
+Fabled-versie waar het spel die kent. De bouwer haalt het pas op zodra je hem
+openklapt.
+
+Het skills-veld uit de dump zit er bewust NIET in. Dat leek de moves te geven
+die een character leert, maar 5.413 van de 5.418 characters dragen exact
+hetzelfde levelpatroon (1, 13, 20, 30, 38, 43) en op 43 staat altijd een van
+vijf Awakenings. Dat is een vast sjabloon, geen leercurve, en wat het dan wel
+betekent is van buitenaf niet vast te stellen.
 
     python3 tools/build-characters.py /pad/naar/ievr.en.json
 
@@ -34,36 +40,6 @@ def build(dump_path):
     for x in d["basaras"]:
         fabled.setdefault(x["character_id"], x)
 
-    # Moves staan als id in de skills-lijst; hissatsu en aura's door elkaar.
-    names = {}
-    for x in d["hissatsu"]:
-        if x.get("name"):
-            names[x["id"]] = x["name"]
-    for a in d["auras"]:
-        if a.get("name"):
-            names.setdefault(a["id"], a["name"])
-
-    moves = []
-    index = {}
-
-    def move_index(name):
-        if name not in index:
-            index[name] = len(moves)
-            moves.append(name)
-        return index[name]
-
-    def learned(x):
-        """(level, move) voor alles wat oplost; een van de zes verwijst naar iets
-        anders - vermoedelijk een passive - en die laten we weg."""
-        out = []
-        for s in (x.get("skills") or []):
-            if not isinstance(s, list) or len(s) < 2:
-                continue
-            name = names.get(s[1])
-            if name:
-                out.append([s[0], move_index(name)])
-        return sorted(out)
-
     usable = [x for x in d["characters"]
               if x.get("name") and x["name"] != "???"
               and x.get("main_position") in POS and x.get("element") in EL]
@@ -83,23 +59,20 @@ def build(dump_path):
         h = hero.get(x["character_id"])
         f = fabled.get(x["character_id"])
         rows.append([name, POS[x["main_position"]], EL[x["element"]]] + block(x)
-                    + [block(h) if h else None, block(f) if f else None, learned(x)])
+                    + [block(h) if h else None, block(f) if f else None])
 
     out = {
         "note": ("Character data datamined from Inazuma Eleven: Victory Road 6.00.23.00, "
                  "via github.com/salty-max/kizuna (MIT). Each entry: name, position, "
                  "element, the seven base stats at level 50 then at level 99, the same "
-                 "fourteen again for the Hero and Fabled versions where they exist, and "
-                 "the moves the character learns as [level, index into moves]."),
+                 "fourteen again for the Hero and Fabled versions where they exist."),
         "stats": ["Kick", "Control", "Technique", "Intelligence", "Pressure", "Agility", "Physical"],
-        "moves": moves,
         "characters": rows,
     }
     path = ROOT / "characters.json"
     path.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"{len(rows)} characters, {sum(1 for r in rows if r[17])} met Hero, "
-          f"{sum(1 for r in rows if r[18])} met Fabled, {len(moves)} verschillende moves, "
-          f"{path.stat().st_size // 1024} KB")
+          f"{sum(1 for r in rows if r[18])} met Fabled, {path.stat().st_size // 1024} KB")
 
 
 if __name__ == "__main__":

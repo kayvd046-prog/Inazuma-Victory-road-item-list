@@ -291,14 +291,6 @@
   .gearlist li[aria-selected="true"] .pick,.gearlist li:hover .pick{color:#12142e}
   .gearlist .none{color:var(--muted);cursor:default}
   .t-cols{display:flex;flex-wrap:wrap;gap:14px 46px}
-  .movelist{list-style:none;margin:0;padding:0;font-size:14px}
-  .movelist li{display:flex;align-items:baseline;gap:10px;padding:3px 0}
-  .movelist .lv{font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
-                font-size:12.5px;font-weight:600;letter-spacing:.05em;color:var(--muted);
-                min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
-  .movelist a{color:var(--text);text-decoration:none;border-bottom:1px solid var(--line)}
-  .movelist a:hover{color:var(--bolt);border-color:var(--bolt)}
-  .movelist .nolink{color:var(--muted)}
   /* Wat de gekozen set aan tokens kost. */
   .setcost{margin:15px 0 0;padding-top:13px;border-top:1px solid var(--line);
            display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;font-size:14px}
@@ -566,7 +558,7 @@
   <div>
   <p class="kicker">Inazuma Eleven &middot; Victory Road</p>
   <h1><span class="l1">Item</span><span class="l2">List</span></h1>
-  <p class="lede">Every one of the 2,060 items in <b>Inazuma Eleven: Victory Road</b> and where it comes from &mdash; special moves, hyper moves, Keshin, Totems, tactics, equipment, kits and emblems. Search by item name, shop, team or currency, and filter by category, type, element or the stat an item gives. Or build a set: pick a character &mdash; their normal, Hero or Fabled version, at level 50 or 99 &mdash; fill the boots, pendant, bracelet and misc slots, rank the gear by any stat, and see the base and combat stats they end up with, the moves they learn and what the set costs in tokens.</p>
+  <p class="lede">Every one of the 2,060 items in <b>Inazuma Eleven: Victory Road</b> and where it comes from &mdash; special moves, hyper moves, Keshin, Totems, tactics, equipment, kits and emblems. Search by item name, shop, team or currency, and filter by category, type, element or the stat an item gives. Or build a set: pick a character &mdash; their normal, Hero or Fabled version, at level 50 or 99 &mdash; fill the boots, pendant, bracelet and misc slots, rank the gear by any stat, and see the base and combat stats they end up with, and what the set costs in tokens.</p>
   </div>
 </header>
 <div class="slash"></div>
@@ -676,7 +668,7 @@
 </section>
 
 <footer>
-  <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides, and 189 later items from the kizuna datamined dump of game version 6.00.23.00. The 5,206 characters in the set builder, their Hero and Fabled versions, their level 50 and level 99 stats and the moves they learn are read out of the same game files. The combat stats of a character are not stored anywhere: they follow from the seven base stats (Shoot AT = Kick + Control, KP = Pressure&times;2 + Physical&times;3 + Agility&times;4, and so on), formulas that hold to the decimal for all 491 pieces of equipment in this list.</p>
+  <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides, and 189 later items from the kizuna datamined dump of game version 6.00.23.00. The 5,206 characters in the set builder, their Hero and Fabled versions, and their level 50 and level 99 stats are read out of the same game files. The combat stats of a character are not stored anywhere: they follow from the seven base stats (Shoot AT = Kick + Control, KP = Pressure&times;2 + Physical&times;3 + Agility&times;4, and so on), formulas that hold to the decimal for all 491 pieces of equipment in this list.</p>
   <p><b>What is missing.</b> The spreadsheet lists a shop for each item but not its token price, so the Cost / source column is empty for most equipment; where a guide documents a price, or an item is a battle reward, it sits there. The Stats column holds the stats an item gives &mdash; the two base stats first, then the Focus, Scramble, Wall, Shoot and KP values beneath &mdash; and the Power, Tension and Duration of a move. You can filter on several stats at once and then sort on whichever one you like, or on their total. The moves, equipment and tactics from the Ares and Orion routes and the updates after them were added from a datamined dump of game version 6.00.23.00 (<a href="https://github.com/salty-max/kizuna">kizuna</a>, MIT, August 2026). Kits and emblems for those routes are not in that dump, so those are still missing.</p>
 </footer>
 
@@ -3248,7 +3240,7 @@ function powerOf(s){
 const VERSIONS=[['base','Base',3],['hero','Hero',17],['fabled','Fabled',18]];
 let version='base', level=99;
 
-let CHARS=null, MOVES=[], charState='idle', chosen=null, charHi=-1, matches=[];
+let CHARS=null, charState='idle', chosen=null, charHi=-1, matches=[];
 const charq=document.getElementById('charq'), charlist=document.getElementById('charlist'),
       chosenBox=document.getElementById('chosen'),
       verSel=document.getElementById('version'), verLbl=document.getElementById('verlbl'),
@@ -3274,7 +3266,7 @@ function loadChars(){
   charState='loading';
   return fetch('characters.json')
     .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
-    .then(j=>{ CHARS=j.characters; MOVES=j.moves||[]; charState='ready'; paintBuild(); })
+    .then(j=>{ CHARS=j.characters; charState='ready'; paintBuild(); })
     .catch(()=>{ charState='failed'; paintBuild(); });
 }
 
@@ -3342,27 +3334,6 @@ function fillVersions(){
 }
 verSel.addEventListener('change',()=>{ version=verSel.value; paintBuild(); syncURL(); });
 lvlSel.addEventListener('change',()=>{ level=+lvlSel.value; paintBuild(); syncURL(); });
-
-// Welke movenamen in de lijst zelf voorkomen; alleen die krijgen een link.
-const INLIST=new Set();
-DATA.forEach(d=>INLIST.add(d[0].toLowerCase()));
-
-// De moves die een character leert, met het level erbij. Een van de zes
-// verwijzingen in de spelbestanden wijst naar iets anders dan een move; die is
-// bij het bouwen van characters.json al weggelaten.
-function movesBlock(c){
-  const list=c[19]||[];
-  if(!list.length) return '';
-  return '<div><p class="t-sub">Moves</p><ul class="movelist">'
-    +list.map(([lv,i])=>{
-      const name=MOVES[i]||'';
-      const label=INLIST.has(name.toLowerCase())
-        ? `<a href="?q=${encodeURIComponent(name)}" data-move="${esc(name)}">${esc(name)}</a>`
-        : `<span class="nolink" title="Not in the list yet">${esc(name)}</span>`;
-      return `<li><span class="lv">Lv ${lv}</span>${label}</li>`;
-    }).join('')
-    +'</ul></div>';
-}
 
 // Wat een set kost, opgeteld per token. Van 441 van de 491 uitrustingsstukken
 // kennen we de prijs; van de rest niet, en dat zeggen we erbij.
@@ -3585,7 +3556,6 @@ function paintBuild(){
     +'<div class="t-cols">'
     +'<div><p class="t-sub">Base stats</p>'+statRows(CHAR_ORDER,base,tot,true)+'</div>'
     +'<div><p class="t-sub">Combat stats</p>'+statRows(POWER_ORDER,power,gearPower,false)+'</div>'
-    +movesBlock(chosen)
     +'</div>'
     +costBlock();
 }
@@ -3608,17 +3578,6 @@ buildClear.onclick=()=>{
 chosenBox.addEventListener('click',e=>{
   if(!e.target.closest('#charclear')) return;
   chosen=null; version='base'; paintBuild(); syncURL(); charq.focus();
-});
-
-// Een move aanklikken zoekt hem op in de lijst; de set blijft staan, want die
-// zit in dezelfde URL.
-totalBox.addEventListener('click',ev=>{
-  const a=ev.target.closest('a[data-move]');
-  if(!a||ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.button!==0) return;
-  ev.preventDefault();
-  q.value=a.dataset.move;
-  render();
-  document.getElementById('grid').scrollIntoView({behavior:'smooth',block:'start'});
 });
 
 fillSlots();
