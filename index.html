@@ -274,6 +274,7 @@
                   font-family:'Barlow Semi Condensed','Helvetica Neue',system-ui,sans-serif;
                   font-size:15px;font-weight:600}
   .gearbar select:hover{border-color:var(--bolt)}
+  .vernote{font-size:13px;color:var(--muted);font-style:italic}
   .gearbar #raritylbl{margin-left:14px}
   .gearq{width:100%;height:42px;background:var(--ink);color:var(--text);border:2px solid var(--line);
          border-radius:0;padding:0 10px;font:inherit;outline:none}
@@ -606,6 +607,7 @@
         <option value="99">Lv 99</option>
         <option value="50">Lv 50</option>
       </select>
+      <span class="vernote" id="vernote" hidden></span>
     </div>
     <div class="slots" id="slots"></div>
     <div class="totals" id="totals"></div>
@@ -668,7 +670,7 @@
 </section>
 
 <footer>
-  <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides, and 189 later items from the kizuna datamined dump of game version 6.00.23.00. The 5,206 characters in the set builder, their Hero and Fabled versions, and their level 50 and level 99 stats are read out of the same game files. The combat stats of a character are not stored anywhere: they follow from the seven base stats (Shoot AT = Kick + Control, KP = Pressure&times;2 + Physical&times;3 + Agility&times;4, and so on), formulas that hold to the decimal for all 491 pieces of equipment in this list.</p>
+  <p><b>Sources.</b> Most of this comes from the Inazuma Eleven VR Document v3.06 (community spreadsheet, last updated 2 March 2026) and Endou's kit and emblem unlock sheet, with prices added from Operation Sports and NoobFeed guides, and 189 later items from the kizuna datamined dump of game version 6.00.23.00. The 5,206 characters in the set builder, their Hero and Fabled versions, and their level 50 and level 99 stats are read out of the same game files. Those files carry a Hero stat line for only 71 characters and a Fabled one for 70, so where the builder says it has no numbers for a version, that is what it means: the game may well allow the upgrade anyway. The combat stats of a character are not stored anywhere: they follow from the seven base stats (Shoot AT = Kick + Control, KP = Pressure&times;2 + Physical&times;3 + Agility&times;4, and so on), formulas that hold to the decimal for all 491 pieces of equipment in this list.</p>
   <p><b>What is missing.</b> The spreadsheet lists a shop for each item but not its token price, so the Cost / source column is empty for most equipment; where a guide documents a price, or an item is a battle reward, it sits there. The Stats column holds the stats an item gives &mdash; the two base stats first, then the Focus, Scramble, Wall, Shoot and KP values beneath &mdash; and the Power, Tension and Duration of a move. You can filter on several stats at once and then sort on whichever one you like, or on their total. The moves, equipment and tactics from the Ares and Orion routes and the updates after them were added from a datamined dump of game version 6.00.23.00 (<a href="https://github.com/salty-max/kizuna">kizuna</a>, MIT, August 2026). Kits and emblems for those routes are not in that dump, so those are still missing.</p>
 </footer>
 
@@ -3244,7 +3246,8 @@ let CHARS=null, charState='idle', chosen=null, charHi=-1, matches=[];
 const charq=document.getElementById('charq'), charlist=document.getElementById('charlist'),
       chosenBox=document.getElementById('chosen'),
       verSel=document.getElementById('version'), verLbl=document.getElementById('verlbl'),
-      lvlSel=document.getElementById('level'), lvlLbl=document.getElementById('lvllbl');
+      lvlSel=document.getElementById('level'), lvlLbl=document.getElementById('lvllbl'),
+      vernote=document.getElementById('vernote');
 
 const charName=c=>c[0];
 // Waar de veertien getallen van een versie beginnen: de gewone versie staat op
@@ -3324,13 +3327,21 @@ charq.addEventListener('blur',()=>setTimeout(closeList,120));
 
 function fillVersions(){
   if(!chosen) return;
-  verSel.innerHTML=VERSIONS.filter(([k])=>hasVersion(chosen,k))
-    .map(([k,label])=>`<option value="${k}">${label}</option>`).join('');
+  // Alle drie de versies blijven in het menu staan; wat de spelbestanden niet
+  // dragen wordt uitgegrijsd. Een ontbrekende Fabled leest dan als "wij hebben
+  // die cijfers niet" en niet als "die bestaat niet" - dat laatste zou onwaar
+  // zijn: de bestanden dragen maar 71 Hero- en 70 Fabled-statlijnen.
+  const missing=[];
+  verSel.innerHTML=VERSIONS.map(([k,label])=>{
+    const has=hasVersion(chosen,k);
+    if(!has) missing.push(label);
+    return `<option value="${k}"${has?'':' disabled'}>${label}${has?'':' \u2014 no data'}</option>`;
+  }).join('');
   if(!hasVersion(chosen,version)) version='base';
   verSel.value=version;
-  // Eén versie is geen keuze; dan verdwijnt het menu.
-  const only=verSel.options.length<2;
-  verSel.hidden=only; verLbl.hidden=only;
+  verSel.hidden=false; verLbl.hidden=false;
+  vernote.hidden=!missing.length;
+  vernote.textContent=missing.length ? `no ${missing.join(' or ')} numbers in this data` : '';
 }
 verSel.addEventListener('change',()=>{ version=verSel.value; paintBuild(); syncURL(); });
 lvlSel.addEventListener('change',()=>{ level=+lvlSel.value; paintBuild(); syncURL(); });
@@ -3513,6 +3524,7 @@ function paintBuild(){
   chosenBox.hidden=!chosen;
   lvlSel.hidden=!chosen; lvlLbl.hidden=!chosen;
   verSel.hidden=!chosen; verLbl.hidden=!chosen;
+  if(!chosen) vernote.hidden=true;
   if(chosen){
     lvlSel.value=String(level);
     fillVersions();
