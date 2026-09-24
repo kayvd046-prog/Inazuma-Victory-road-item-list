@@ -42,10 +42,12 @@ and emblems for those routes are not in that dump and are still missing.
 ## Editing the data
 
 `index.html` is the only place the item list lives, in the `DATA` array near the top of its
-script. The per-shop and per-category pages, the sitemap and the browse links are generated from
-it by `tools/build-pages.py`, which a GitHub Action reruns on every push that touches
-`index.html`. So edit `index.html` and nothing else; the rest catches up by itself. To rebuild
-locally:
+script. The per-shop, per-category and ranking pages, the sitemap and the browse links are
+generated from it by `tools/build-pages.py`, which a GitHub Action reruns on every push that
+touches `index.html`. The same script keeps the item count in the meta tags current and rebuilds
+the FAQ's structured data from the visible FAQ, so search engines never see different answers than
+visitors do; the numbers in the visible FAQ itself are still written by hand. So edit `index.html`
+and nothing else; the rest catches up by itself. To rebuild locally:
 
 ```bash
 python3 tools/build-pages.py
