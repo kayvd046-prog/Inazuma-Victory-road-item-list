@@ -3,7 +3,9 @@
 
 index.html is de enige bron: de itemlijst staat daar in de DATA-array en wordt
 hier uitgelezen, nooit apart bijgehouden. Draai dit opnieuw na elke wijziging
-aan die array; de GitHub Action in .github/workflows/pages.yml doet dat vanzelf.
+aan die array; de GitHub Action in .github/workflows/build-pages.yml doet dat
+vanzelf. In index.html zelf werkt het de links naar de subpagina's bij, het
+aantal items in de meta-tags, en de FAQ in de structured data.
 
     python3 tools/build-pages.py
 """
@@ -24,6 +26,10 @@ MIN_ITEMS = 10          # onder deze grens is een eigen pagina te dun om te make
 TOTAL = 0               # aantal items; wordt in build() gezet
 TOP_EQUIP = 15          # lengte van een ranglijst per stat
 TOP_MOVE = 25
+# Dezelfde lettertypes als index.html; zonder deze link vallen de subpagina's
+# terug op Helvetica en systeemletters.
+FONTS = ("https://fonts.googleapis.com/css2?family=Archivo+Black"
+         "&family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap")
 
 # ---------------------------------------------------------------- data inlezen
 
@@ -62,11 +68,41 @@ ALT_STAT = re.compile(r"^(-?\d+(?:\.\d+)?)\s+([A-Za-z]+)$")
 ALT_NAMES = {"Int", "Phys", "Tech", "Kick", "Control", "Agility", "Pressure"}
 
 
+# Staat in kolom 3 de prijs, dan staan de Power, Tension, Duration en CD van een
+# move of tactic als een deel van Details: "Long Shoot · 無 (Void) · Power 85 /
+# Tension 80 / Duration 5.69s". Alleen bij moves en tactics: de "Power 50.0" van
+# een Bond Object is iets anders. Zelfde regel als parseMoveTail() in index.html.
+MOVE_ROWS = {"Special Move", "Tactic"}
+
+
+def move_tail(row):
+    """(het deel met de move-stats, de rest van Details), of None."""
+    if row[1] not in MOVE_ROWS or not row[4] or is_stats(row[3]):
+        return None
+    parts = row[4].split(" · ")
+    for k, part in enumerate(parts):
+        if all(MOVE_STAT.match(x) for x in part.split(" / ")):
+            return part, " · ".join(parts[:k] + parts[k + 1:])
+    return None
+
+
+def main_text(row):
+    """De bovenste regel van de Stats-kolom: kolom 3 als daar stats staan,
+    anders de move-stats uit Details."""
+    if is_stats(row[3]):
+        return row[3]
+    tail = move_tail(row)
+    return tail[0] if tail else ""
+
+
 def split_details(row):
     """Geeft (stats-tekst, resterende toelichting) voor de Details-kolom."""
     v = (row[4] or "").strip()
     if not v:
         return "", ""
+    tail = move_tail(row)
+    if tail:
+        return "", tail[1]
     if not is_stats(row[3]):
         head, _, rest = v.partition(" \u00b7 ")
         parts = [p.strip() for p in head.split(" / ")]
@@ -88,7 +124,7 @@ def cost_text(row):
 
 
 def stats_text(row):
-    parts = [row[3] if is_stats(row[3]) else "", split_details(row)[0]]
+    parts = [main_text(row), split_details(row)[0]]
     return " \u00b7 ".join(p for p in parts if p)
 
 
@@ -144,10 +180,11 @@ def _sub_stats(value):
 def stat_map(row):
     """Alle stats van een rij als getallen: kolom 3 en de Details-kolom samen."""
     main = _col3_stats(row[3])
-    alt = None if main else _alt_stats(row[4])
-    sub = None if alt else _sub_stats(row[4])
+    tail = None if main else move_tail(row)
+    alt = None if main or tail else _alt_stats(row[4])
+    sub = None if alt or tail else _sub_stats(row[4])
     merged = dict(main)
-    merged.update(alt or sub or {})
+    merged.update(_col3_stats(tail[0]) if tail else alt or sub or {})
     return merged
 
 
@@ -244,7 +281,7 @@ def table_html(rows):
         if show_cost:
             cells.append(f'<td class="cost">{e(cost_text(r))}</td>')
         if show_stats:
-            main = r[3] if is_stats(r[3]) else ""
+            main = main_text(r)
             sub = split_details(r)[0]
             inner = ((f'<span class="s-main">{e(main)}</span>' if main else "")
                      + (f'<span class="s-sub">{e(sub)}</span>' if sub else ""))
@@ -303,6 +340,9 @@ def shell(title, description, canonical, heading, intro, main_html, siblings, si
 <meta property="og:image" content="{SITE}og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="{FONTS}" rel="stylesheet">
 <script type="application/ld+json">
 {ld}
 </script>
@@ -583,6 +623,68 @@ def build_best(rows, links):
     return written
 
 
+# ------------------------------------------------------------ teksten per pagina
+
+# Hoe een categorie in een kop, in lopende tekst en na een getal heet.
+# "Equipments" en "Kit / Emblems" bestaan niet.
+CATEGORY_WORDS = {
+    "Special Move": ("Special Moves", "special moves", "special moves"),
+    "Hyper Move": ("Hyper Moves", "hyper moves", "hyper moves"),
+    "Tactic": ("Tactics", "tactics", "tactics"),
+    "Equipment": ("Equipment", "equipment", "pieces of equipment"),
+    "Kit / Emblem": ("Kits and Emblems", "kits and emblems", "kits and emblems"),
+    "Bond Object": ("Bond Town Objects", "Bond Town objects", "Bond Town objects"),
+}
+
+
+def cat_words(name):
+    return CATEGORY_WORDS.get(name, (f"{name}s", f"{name.lower()}s", f"{name.lower()}s"))
+
+
+# Vier "winkels" zijn geen winkel: twee soorten Chronicle-gevechten, een kist, en
+# een bak voor wat nog geen bekende herkomst heeft. "Every item it sells" klopt
+# daar niet, dus die krijgen een eigen titel, beschrijving en inleiding.
+NOT_SHOPS = {
+    "Chronicle - Rare Drop Battle": (
+        "Chronicle Rare Drop Battles — every kit and emblem they drop in {game}",
+        "All {n} kits and emblems you win in Chronicle Rare Drop Battles in {game}, "
+        "with the battle each one drops from.",
+        "Every one of the {n} kits and emblems that Chronicle Rare Drop Battles hand out "
+        "in {game}, with the battle you have to win for each."),
+    "Chronicle - Hero Battle": (
+        "Chronicle Hero Battles — every emblem they drop in {game}",
+        "All {n} emblems you win in Chronicle Hero Battles in {game}, "
+        "with the battle each one drops from.",
+        "Every one of the {n} emblems that Chronicle Hero Battles hand out in {game}, "
+        "with the battle you have to win for each."),
+    "Legendary Chest (not purchasable)": (
+        "Legendary Chest — every item it can hold in {game}",
+        "The {n} items in {game} that come from the Legendary Chest rather than "
+        "a shop, with the stats of each.",
+        "The {n} items in {game} that come from the Legendary Chest; no shop sells them."),
+    "Source unknown": (
+        "Items with an unknown source in {game}",
+        "{n} items in {game} whose shop or source is not known yet, "
+        "most of them added by the Ares and Orion updates.",
+        "{n} items in {game} whose shop or source is not known yet, most of them "
+        "added by the Ares and Orion updates. Know where one comes from? Use "
+        "Submit changes on the main list."),
+}
+
+
+def shop_texts(name, items):
+    """(titel, beschrijving, inleiding) voor een winkelpagina."""
+    n = len(items)
+    if name in NOT_SHOPS:
+        return tuple(t.format(game=GAME, n=n) for t in NOT_SHOPS[name])
+    kinds = ", ".join(cat_words(k)[1] for k in sorted({r[1] for r in items}))
+    return (f"{name} — every item it sells in {GAME}",
+            f"All {n} items available from {name} in {GAME}: {kinds}, "
+            f"with the cost or stats of each.",
+            f"Every one of the {n} items {name} offers in {GAME}, "
+            f"with what each one costs or the stats it gives.")
+
+
 # ---------------------------------------------------------------------- bouwen
 
 def build():
@@ -615,16 +717,14 @@ def build():
 
     written = []
     for name, items in groups["shop"].items():
-        kinds = sorted({r[1] for r in items})
+        title, description, intro = shop_texts(name, items)
         path = ROOT / "shops" / f"{slug(name)}.html"
         path.write_text(page(
-            title=f"{name} &mdash; every item it sells in {GAME}".replace("&mdash;", "—"),
-            description=(f"All {len(items)} items available from {name} in {GAME}: "
-                         f"{', '.join(kinds).lower()}, with the cost or stats of each."),
+            title=title,
+            description=description,
             canonical=f"{SITE}shops/{slug(name)}.html",
             heading=name,
-            intro=(f"Every one of the {len(items)} items {name} offers in {GAME}, "
-                   f"with what each one costs or the stats it gives."),
+            intro=intro,
             rows=items, siblings=[l for l in shop_links if l[0] != name],
             sib_label="Other shops",
         ), encoding="utf-8")
@@ -632,15 +732,17 @@ def build():
 
     for name, items in groups["category"].items():
         shops = sorted({r[2] for r in items})
+        heading, plural, counted = cat_words(name)
+        # Bronnen, geen winkels: kits en emblemen komen uit gevechten.
+        sources = f"{len(shops)} source{'s' if len(shops) != 1 else ''}"
         path = ROOT / "categories" / f"{slug(name)}.html"
         path.write_text(page(
-            title=f"All {name.lower()}s in {GAME} and where to get them",
-            description=(f"All {len(items)} {name.lower()} entries in {GAME}, "
-                         f"from {len(shops)} sources, with cost or stats for each."),
+            title=f"All {plural} in {GAME} and where to get them",
+            description=(f"All {len(items)} {counted} in {GAME}, "
+                         f"from {sources}, with cost or stats for each."),
             canonical=f"{SITE}categories/{slug(name)}.html",
-            heading=f"{name}s",
-            intro=(f"All {len(items)} {name.lower()} entries in {GAME}, spread over "
-                   f"{len(shops)} shop{'s' if len(shops) != 1 else ''}."),
+            heading=heading,
+            intro=f"All {len(items)} {counted} in {GAME}, from {sources}.",
             rows=items, siblings=[l for l in cat_links if l[0] != name],
             sib_label="Other categories",
         ), encoding="utf-8")
@@ -655,7 +757,10 @@ def build():
            for kind, name, plural in MOVE_PAGES])
     written += build_best(rows, rank_links)
 
-    urls = [SITE] + [f"{SITE}{p.relative_to(ROOT).as_posix()}" for p in written]
+    # Een map-index staat in zijn canonical als "best/", dus in de sitemap ook.
+    rels = [p.relative_to(ROOT).as_posix() for p in written]
+    urls = [SITE] + [SITE + (r[:-len("index.html")] if r.endswith("/index.html") else r)
+                     for r in rels]
     today = date.today().isoformat()
     entries = "\n".join(
         f"  <url>\n    <loc>{u}</loc>\n    <lastmod>{today}</lastmod>\n"
@@ -669,6 +774,7 @@ def build():
         f"{entries}\n</urlset>\n", encoding="utf-8")
 
     write_browse_block(shop_links, cat_links, rank_links)
+    sync_index(len(rows))
 
     print(f"{len(written)} pagina's, {len(urls)} URL's in de sitemap")
     return shop_links, cat_links
@@ -701,6 +807,48 @@ def write_browse_block(shop_links, cat_links, rank_links):
     if new == src and "browse:start" not in src:
         raise SystemExit("markers ontbreken in index.html")
     path.write_text(new, encoding="utf-8")
+
+
+def sync_index(total):
+    """Houdt twee dingen in index.html gelijk die anders uit elkaar lopen.
+
+    * Het aantal items in de kop: de meta-tags en het Dataset-blok. Dat is elk
+      getal met een duizendtal-komma direct voor " items", en de inleiding
+      bovenaan de pagina.
+    * Het FAQPage-blok. Google wil in de structured data dezelfde vragen en
+      antwoorden zien als op de pagina zelf; het wordt daarom opgebouwd uit de
+      zichtbare FAQ in plaats van met de hand bijgehouden. De getallen in de
+      zichtbare FAQ zelf blijven handwerk.
+    """
+    path = ROOT / "index.html"
+    src = path.read_text(encoding="utf-8")
+    count = f"{total:,}"
+
+    head_end = src.index("</head>")
+    head = re.sub(r"\b\d{1,3}(?:,\d{3})+(?= items)", count, src[:head_end])
+    body = re.sub(r'(<p class="lede">Every one of the )\d{1,3}(?:,\d{3})*( items)',
+                  lambda m: m.group(1) + count + m.group(2), src[head_end:], count=1)
+    src = head + body
+
+    faq = re.search(r'<section class="faq"[^>]*>(.*?)</section>', src, re.S)
+    if not faq:
+        raise SystemExit("FAQ-sectie ontbreekt in index.html")
+    plain = lambda h: " ".join(html.unescape(re.sub(r"<[^>]+>", "", h)).split())
+    pairs = re.findall(r"<h3>(.*?)</h3>\s*<p>(.*?)</p>", faq.group(1), re.S)
+    ld = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [{"@type": "Question", "name": plain(q),
+                        "acceptedAnswer": {"@type": "Answer", "text": plain(a)}}
+                       for q, a in pairs],
+    }, indent=2, ensure_ascii=False).replace("<", "\\u003c")
+    blocks = [m for m in re.finditer(r'<script type="application/ld\+json">\n(.*?)\n</script>', src, re.S)
+              if '"FAQPage"' in m.group(1)]
+    if len(blocks) != 1:
+        raise SystemExit("verwacht precies een FAQPage-blok in index.html")
+    m = blocks[0]
+    src = src[:m.start(1)] + ld + src[m.end(1):]
+    path.write_text(src, encoding="utf-8")
 
 
 if __name__ == "__main__":
