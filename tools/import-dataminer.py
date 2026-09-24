@@ -126,14 +126,17 @@ def build(dump_path):
         out.append([x["name"], "Equipment", shop_of(x), main or "—",
                     combat_text(st), SLOT.get(x["slot"], "Misc"), ""])
 
-    seen_moves = set()
+    # De dump noemt een paar moves twee keer, soms een keer met en een keer
+    # zonder winkel. Die horen er een keer in, en dan met de winkel: zo stonden
+    # er twaalf dubbel in de lijst, een keer als 'Source unknown'.
+    moves = OrderedDict()
     for x in dump["hissatsu"]:
         if not x.get("name") or not is_new(x["name"], "Special Move"):
             continue
-        # De dump noemt een paar moves twee keer; die horen er een keer in.
-        if norm(x["name"]) in seen_moves:
-            continue
-        seen_moves.add(norm(x["name"]))
+        key = norm(x["name"])
+        if key not in moves or (shop_of(moves[key]) == UNKNOWN and shop_of(x) != UNKNOWN):
+            moves[key] = x
+    for x in moves.values():
         el = ELEMENT.get(x["element"], "")
         note = ("Long Shoot · " if x.get("is_longshot") else "") + el
         out.append([x["name"], "Special Move", shop_of(x),
