@@ -60,5 +60,23 @@ normal visit. A character's combat stats are computed, not stored: `powerOf()` i
 the formulas, which reproduce the combat stats of all 491 pieces of equipment in `DATA` exactly, so
 they can be trusted for characters too.
 
+## Tests
+
+`tests/` holds browser tests for the list, the set builder and every generated page, including an
+accessibility check with axe-core, plus checks on the data itself: that the page and
+`tools/build-pages.py` read every row the same way, that no move is listed twice, and that the
+numbers the FAQ quotes still match `DATA`. A GitHub Action runs them on every push, after
+regenerating the pages. To run them locally:
+
+```bash
+cd tests
+npm ci
+npx playwright install chromium
+npx playwright test
+```
+
+When a change to `DATA` moves a number the FAQ quotes, the FAQ test fails and names the sentence
+that needs updating.
+
 Data comes from the Inazuma Eleven VR Document v3.06 and community kit, emblem and price
 guides; the sources are credited at the bottom of the site.
