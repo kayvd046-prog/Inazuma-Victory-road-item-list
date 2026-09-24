@@ -424,7 +424,7 @@ def shell(title, description, canonical, heading, intro, main_html, siblings, si
 </header>
 <div class="slash"></div>
 {main_html}
-{f'<nav class="more wrap"><h2>{e(sib_label)}</h2><ul>{links}</ul></nav>' if links else ''}
+{f'<nav class="more wrap" aria-label="{e(sib_label)}"><h2>{e(sib_label)}</h2><ul>{links}</ul></nav>' if links else ''}
 <footer class="wrap">
   <p>Part of the <a href="{SITE}">{e(GAME)} item list</a> &mdash; all {TOTAL:,} items, searchable and filterable.
   Data from the Inazuma Eleven VR Document v3.06 and community guides.</p>
@@ -512,7 +512,7 @@ def sections_html(sections):
     """Kopjes met een springlijst erboven, zodat een lange pagina te doen blijft."""
     e = html.escape
     jump = "".join(f'<li><a href="#{slug(t)}">{e(t)}</a></li>' for t, _, _ in sections)
-    parts = [f'<nav class="jump"><ul>{jump}</ul></nav>']
+    parts = [f'<nav class="jump" aria-label="On this page"><ul>{jump}</ul></nav>']
     for title, note, table in sections:
         parts.append(f'<h2 class="sec" id="{slug(title)}">{e(title)}</h2>')
         if note:
@@ -602,7 +602,7 @@ def build_best(rows, links):
         ), encoding="utf-8")
         written.append(ROOT / "best" / f"{name}.html")
 
-    hub = ('<main class="wrap">\n<nav class="jump"><ul>'
+    hub = ('<main class="wrap">\n<nav class="jump" aria-label="Rankings"><ul>'
            + "".join(f'<li><a href="{e(href.replace(SITE, SITE))}">{e(label)}</a> '
                      f"<span>{n}</span></li>" for label, href, n in links)
            + "</ul></nav>\n</main>")
